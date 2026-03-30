@@ -1,0 +1,44 @@
+import React from 'react';
+import { StyleSheet, TouchableOpacity, View, Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { MaterialIcons } from '@expo/vector-icons';
+
+export const GlassButton = ({ icon, onPress, color = "#fff" }: {icon: any, onPress?: () => void, color?: string}) => {
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+      {/* 1. The Container defines the circle shape */}
+      <View style={styles.glassWrapper}>
+        <BlurView 
+          intensity={Platform.OS === 'ios' ? 30 : 100} // Intensity varies by platform
+          tint="light" 
+          style={styles.blurContainer}
+        >
+          {/* 2. The Inner Content adds the padding and icon */}
+          <View style={styles.iconContainer}>
+            <MaterialIcons name={icon} size={24} color={color} />
+          </View>
+        </BlurView>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+const styles = StyleSheet.create({
+  glassWrapper: {
+    width: 56,
+    height: 56,
+    borderRadius: 28, // Half of width/height for perfect circle
+    overflow: 'hidden', // Crucial: clips the BlurView to the circle
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)', // Subtle highlight border
+  },
+  blurContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Subtle tint
+  },
+  iconContainer: {
+    padding: 12,
+  },
+});

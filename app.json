@@ -1,44 +1,65 @@
 {
   "expo": {
-    "name": "grateful",
+    "name": "Grateful",
     "slug": "grateful",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "grateful",
     "userInterfaceStyle": "automatic",
-    "ios": {
-      "icon": "./assets/expo.icon"
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#2b2724"
     },
-    "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+    "ios": {
+      "icon": "./assets/images/icon.png",
+      "bundleIdentifier": "com.harryyking.grateful",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
       },
-      "predictiveBackGestureEnabled": false
+      "entitlements": {
+        "com.apple.security.application-groups": [
+          "group.com.harryyking.grateful"
+        ]
+      }
     },
     "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "output": "server",
+      "favicon": "./assets/images/favicon.png",
+      "origin": "http://localhost:8081"
     },
     "plugins": [
-      "expo-router",
+      [
+        "expo-router",
+        {
+          "origin": "http://localhost:8081"
+        }
+      ],
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#2b2724",
           "android": {
-            "image": "./assets/images/splash-icon.png",
-            "imageWidth": 76
+            "image": "./assets/images/splash.png",
+            "imageWidth": 200
           }
         }
-      ]
+      ],
+      "expo-sharing",
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "eb2f4e8b-5eb1-4811-b530-7f8e1b5c7890"
+      }
     }
   }
 }

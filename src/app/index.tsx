@@ -1,98 +1,194 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect, useState } from "react";
+import { 
+  View, 
+  StyleSheet, 
+  ImageBackground, 
+  Dimensions, 
+  StatusBar ,
+  TouchableOpacity,
+  ActivityIndicator
+} from "react-native";
+import { useRouter } from "expo-router";
+import { MotiView } from "moti";
+import { LinearGradient } from "expo-linear-gradient";
+import { Text } from "@/components/ui/Text";
+import { Button } from "@/components/ui/Button";
+import { authClient } from "@/lib/authClient";
+import Splash from "@/components/Splash";
+const { width, height } = Dimensions.get("window");
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+const WelcomeImage = require("@/assets/images/welcome.jpg");
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
+export default function WelcomeScreen() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [signingIn, setSigningIn] = useState(false);
+
+  // Check if already signed in (anonymous or regular)
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data: session } = await authClient.getSession();
+        if (session?.user) {
+          // Already signed in → go to onboarding or home
+          router.replace("/home"); // or "/home" if you have a check there
+        }
+      } catch (error) {
+        console.error("Session check failed:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkSession();
+  }, [router]);
+
+  const handleBeginJourney = async () => {
+    setSigningIn(true);
+    try {
+      // Sign in anonymously
+      const { data, error } = await authClient.signIn.anonymous();
+
+      if (error) {
+        console.error("Anonymous sign-in failed:", error);
+        alert("Something went wrong. Please try again.");
+        return;
+      }
+
+      console.log("Anonymous user created:", data?.user?.id);
+
+      // Redirect to onboarding
+      router.replace("/onboarding/quiz");
+    } catch (error) {
+      console.error("Sign-in error:", error);
+      alert("Unable to start your journey right now.");
+    } finally {
+      setSigningIn(false);
+    }
+  };
+
+  // Loading screen while checking session
+  if (loading) {
     return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
+     <Splash/>
     );
   }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+
+  
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+      
+      {/* Background Image - Choose something serene like a sunrise or a quiet path */}
+      <ImageBackground
+        source={WelcomeImage}
+        style={styles.backgroundImage}
+      >
+        {/* Gradient Overlay for Text Legibility */}
+        <LinearGradient
+          colors={["transparent", "rgba(28, 28, 24, 0.4)", "#1c1c18"]}
+          style={styles.gradient}
+        >
+          <View style={styles.content}>
+            
+            {/* Animated Branding Section */}
+            <MotiView
+              from={{ opacity: 0, translateY: 20 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: "timing", duration: 1000 }}
+            >
+              <Text variant="h1" style={styles.brand}>Grateful</Text>
+              <Text style={styles.headline}>
+               Personal Messages from Jesus
+              </Text>
+              <Text style={styles.subheadline}>
+                Get Consistent with God and grow closer to God through daily intentionality.
+              </Text>
+            </MotiView>
+
+            {/* Action Section */}
+            <MotiView
+              from={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "timing", duration: 1000, delay: 500 }}
+              style={styles.footer}
+            >
+              <Button 
+                title="Begin Your Journey" 
+                onPress={handleBeginJourney}
+                
+              />
+              
+            </MotiView>
+
+          </View>
+        </LinearGradient>
+      </ImageBackground>
+    </View>
   );
 }
 
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+// Added for the "Log in" touchable if you don't have it imported
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
-  );
-}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    backgroundColor: "#1c1c18",
   },
-  safeArea: {
+  backgroundImage: {
+    width: width,
+    height: height,
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  gradient: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+    justifyContent: "flex-end",
+    paddingHorizontal: 32,
+    paddingBottom: 60,
   },
-  title: {
-    textAlign: 'center',
+  content: {
+    alignItems: "flex-start",
   },
-  code: {
-    textTransform: 'uppercase',
+  brand: {
+    fontSize: 28,
+    color: "#EBA22D",
+    marginBottom: 12,
+    letterSpacing: -0.5,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  headline: {
+    fontSize: 36,
+    lineHeight: 48,
+    color: "#FFFFFF",
+    fontWeight: "600",
+    marginBottom: 16,
+  },
+  subheadline: {
+    fontSize: 17,
+    lineHeight: 24,
+    color: "rgba(255, 255, 255, 0.8)",
+    marginBottom: 48,
+  },
+  footer: {
+    width: "100%",
+    gap: 20,
+  },
+  primaryButton: {
+    height: 64,
+    backgroundColor: "#EBA22D",
+    borderRadius: 32,
+    width: "100%",
+  },
+  loginLink: {
+    alignItems: "center",
+    marginTop: 10,
+  },
+  loginText: {
+    color: "rgba(255, 255, 255, 0.6)",
+    fontSize: 14,
+  },
+  loginSpan: {
+    color: "#FFFFFF",
+    fontWeight: "700",
   },
 });
