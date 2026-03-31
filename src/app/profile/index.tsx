@@ -137,7 +137,7 @@ export default function ProfileScreen() {
   };
   // Contact Support (opens email)
   const contactSupport = () => {
-    Linking.openURL('mailto:support@grateful.app?subject=Support Request');
+    Linking.openURL('mailto:arthurharry06@gmail.com?subject=Support Request');
   };
 
 

@@ -93,7 +93,7 @@ export default function ReviewsScreen() {
                     <View style={styles.cardHeaderInfo}>
                       <Text style={styles.authorText}>{item.name}</Text>
                       <View style={styles.milestoneBadge}>
-                        <MaterialIcons name="local-fire-department" size={14} color={colors.accent} />
+                        <MaterialIcons name="local-fire-department" size={14} color={colors.primarySoft} />
                         <Text style={styles.milestoneText}>{item.milestone}</Text>
                       </View>
                     </View>
@@ -114,7 +114,7 @@ export default function ReviewsScreen() {
 
         {/* Footer / Action Area */}
         <View style={styles.footer}>
-          <TouchableOpacity activeOpacity={0.8} style={styles.buttonShadow} onPress={() => router.push('/home')}>
+          <TouchableOpacity activeOpacity={0.8} style={styles.button} onPress={() => router.push('/home')}>
         
               <Text style={styles.buttonText}>Begin Your Journey</Text>
               <MaterialIcons name="arrow-forward" size={20} color={colors.primaryForeground} />
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   },
   subhead: {
     fontSize: 16,
-    color: colors.mutedForeground,
+    color: colors.muted,
     textAlign: 'center',
     lineHeight: 24,
     paddingHorizontal: 12,
@@ -213,8 +213,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 24,
     elevation: 4,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -239,7 +237,7 @@ const styles = StyleSheet.create({
   milestoneBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.accent,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: radius.md,
@@ -252,7 +250,7 @@ const styles = StyleSheet.create({
   },
   quoteText: {
     fontSize: 17,
-    color: colors.onBackground,
+    color: colors.foreground,
     lineHeight: 26,
     fontStyle: 'italic',
   },
@@ -274,29 +272,19 @@ const styles = StyleSheet.create({
     elevation: 8,
     marginBottom: 24,
   },
-  gradientButton: {
+  button: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 20,
     borderRadius: radius.lg,
     gap: 10,
+    backgroundColor: colors.primary
   },
   buttonText: {
     color: colors.primaryForeground,
     fontSize: 15,
     fontWeight: '800',
     letterSpacing: 1.5,
-  },
-  signInContainer: {
-    alignItems: 'center',
-  },
-  signInText: {
-    color: colors.mutedForeground,
-    fontSize: 15,
-  },
-  signInLink: {
-    color: colors.accent,
-    fontWeight: '800',
   },
 });

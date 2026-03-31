@@ -39,6 +39,8 @@ import { useCallback, useEffect } from "react";
 import { StatusBar } from "react-native";
 import { ThemeProvider } from "@/services/context/ThemeContext";
 import Purchases, {LOG_LEVEL} from 'react-native-purchases'
+import { useNetInfo } from "@react-native-community/netinfo";
+import { OfflineBlocker } from "@/components/OfflineBlocker";
 
 SplashScreen.preventAutoHideAsync(); // keep at top level
 
@@ -67,6 +69,9 @@ export default function RootLayout() {
   const fontsLoaded = dmSansLoaded && playfairLoaded && domineLoaded;
 
   const fontError = dmSansError || playfairError || domineError;
+
+  const netInfo = useNetInfo();
+  const isOnline = netInfo.isInternetReachable !== false
 
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded || fontError) {
@@ -112,6 +117,7 @@ export default function RootLayout() {
         <ThemeProvider>
         <QueryClientProvider client={queryClient}>
           <StatusBar barStyle="light-content" />
+          <OfflineBlocker isOnline={isOnline} />
           <Stack
             screenOptions={{
               headerShown: false,

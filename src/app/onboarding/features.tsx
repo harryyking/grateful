@@ -8,17 +8,14 @@ import {
   Animated,
   Platform,
 } from 'react-native';
+import { Image } from 'expo-image'; // Optimized Image Component
 import { MaterialIcons } from '@expo/vector-icons';
-import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GRATEFUL_THEME } from '@/design/theme';
 import { router } from 'expo-router';
 import { Text } from '@/components/ui/Text';
-import { LinearGradient } from 'expo-linear-gradient';
-import { requestNotificationPermission, schedulePersonalizedDailyPromiseNotification } from '@/services/notifications/notifications';
-import { useDailyReminders } from '@/hooks/useDailyReminders';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const { colors, radius } = GRATEFUL_THEME.light;
 
 const DATA = [
@@ -26,29 +23,25 @@ const DATA = [
     id: '1',
     title: 'Daily Promises',
     desc: 'Start every morning with a sacred word to ground your identity and find peace.',
-    icon: 'auto-stories',
-    accent: colors.primary,
+    image: 'https://o3k82hwwfa.ufs.sh/f/cQKwx0ZpHag1PGJy4ZotiKCfbDrk0elzM8HjWALqUNymES64',
   },
   {
     id: '2',
-    title: 'Sacred Nudges',
+    title: 'Daily Reminders',
     desc: 'Custom notifications that act as a shield during your most vulnerable hours.',
-    icon: 'notifications-active',
-    accent: colors.accent,
+    image: 'https://o3k82hwwfa.ufs.sh/f/cQKwx0ZpHag1QxDWIaEIRVWjzrd7ePZiY5GAuSp28yM4FtNc',
   },
   {
     id: '3',
-    title: 'Truth at a Glance',
+    title: 'Widget Access',
     desc: 'Keep the word visible with beautiful home screen widgets for instant strength.',
-    icon: 'widgets',
-    accent: colors.primary,
+    image: 'https://o3k82hwwfa.ufs.sh/f/cQKwx0ZpHag17Ch4zLLszunHVADrjbLglahtpE5s28F1TGZW',
   },
   {
     id: '4',
-    title: 'Your Sanctuary',
+    title: 'Set Themes',
     desc: 'Choose from dawn, midday, or midnight themes to suit your quiet time.',
-    icon: 'palette',
-    accent: colors.accentSecondary,
+    image: 'https://o3k82hwwfa.ufs.sh/f/cQKwx0ZpHag1o6HOFxlsG9XMuDq8bIaE435vpAHwBrFjP0lL',
   },
 ];
 
@@ -56,9 +49,12 @@ export default function FeatureScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollX = useRef(new Animated.Value(0)).current;
   const slidesRef = useRef<FlatList>(null);
-  
 
-
+  // PRE-FETCH IMAGES: Downloads images to cache immediately on mount
+  useEffect(() => {
+    const urls = DATA.map(item => item.image);
+    Image.prefetch(urls);
+  }, []);
 
   const viewableItemsChanged = useRef(({ viewableItems }: any) => {
     if (viewableItems.length > 0) {
@@ -76,15 +72,21 @@ export default function FeatureScreen() {
 
   const Slide = ({ item }: { item: typeof DATA[0] }) => (
     <View style={styles.slideContainer}>
-      
-      <View style={styles.iconContainer}>
-        <View style={styles.iconCircle}>
-          <MaterialIcons name={item.icon as any} size={70} color={item.accent} />
-        </View>
+      <View style={styles.imageContainer}>
+        {/* Background Ring Detail */}
+        <View style={styles.iconRing} />
+        
+        <Image
+          source={item.image}
+          style={styles.image}
+          contentFit="contain"
+          transition={500} // Smooth fade-in
+          cachePolicy="memory-disk" // Ensure it stays on the device
+        />
       </View>
 
       <View style={styles.textContainer}>
-        <Text variant='h1'>{item.title}</Text>
+        <Text variant='h1' style={styles.title}>{item.title}</Text>
         <View style={styles.divider} />
         <Text style={styles.description}>{item.desc}</Text>
       </View>
@@ -93,6 +95,8 @@ export default function FeatureScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Decorative Glow */}
+      <View style={styles.ambientGlowTop} />
       
       <FlatList
         data={DATA}
@@ -117,12 +121,12 @@ export default function FeatureScreen() {
             const inputRange = [(i - 1) * width, i * width, (i + 1) * width];
             const dotWidth = scrollX.interpolate({
               inputRange,
-              outputRange: [8, 20, 8],
+              outputRange: [8, 22, 8],
               extrapolate: 'clamp',
             });
             const opacity = scrollX.interpolate({
               inputRange,
-              outputRange: [0.2, 1, 0.2],
+              outputRange: [0.3, 1, 0.3],
               extrapolate: 'clamp',
             });
             return (
@@ -134,17 +138,15 @@ export default function FeatureScreen() {
           })}
         </View>
 
-        {/* Action Button with Gradient */}
         <TouchableOpacity 
           style={styles.button} 
           onPress={scrollToNext} 
-          activeOpacity={0.9}
+          activeOpacity={0.85}
         >
-            <Text style={styles.buttonText}>
-              {currentIndex === DATA.length - 1 ? "Begin your Journey" : "Continue"}
-            </Text>
-            <MaterialIcons name="chevron-right" size={20} color="#FFF" />
-      
+          <Text style={styles.buttonText}>
+            {currentIndex === DATA.length - 1 ? "Begin your Journey" : "Continue"}
+          </Text>
+          <MaterialIcons name="chevron-right" size={22} color="#FFF" />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -159,116 +161,95 @@ const styles = StyleSheet.create({
   ambientGlowTop: {
     position: 'absolute',
     top: -100,
-    left: -50,
+    right: -50,
     width: 300,
     height: 300,
     borderRadius: 150,
-    backgroundColor: colors.glow,
-    opacity: 0.6,
+    backgroundColor: colors.primarySoft,
+    opacity: 0.2,
   },
   slideContainer: {
     width,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 30,
+    paddingHorizontal: 40,
   },
-  glowBackdrop: {
-    position: 'absolute',
-    width: 350,
-    height: 350,
-    borderRadius: 175,
-    top: height * 0.1,
-  },
-  iconContainer: {
-    width: 220,
-    height: 220,
+  imageContainer: {
+    width: width * 0.75,
+    height: width * 0.75,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 40,
   },
-  iconCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 2,
-    // Refined Shadow
-    shadowColor: colors.onBackground,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 8,
+  image: {
+    width: '100%',
+    height: '100%',
   },
   iconRing: {
     position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    borderWidth: 1.5,
+    width: width * 0.8,
+    height: width * 0.8,
+    borderRadius: (width * 0.8) / 2,
+    borderWidth: 1,
+    borderColor: colors.primarySoft,
     borderStyle: 'dashed',
+    opacity: 0.3,
   },
   textContainer: {
     alignItems: 'center',
-    paddingHorizontal: 20,
   },
   title: {
-    fontSize: 34,
-    fontWeight: '800',
-    color: colors.foreground,
     textAlign: 'center',
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-    letterSpacing: -0.5,
+    color: colors.foreground,
   },
   divider: {
-    width: 40,
-    height: 3,
-    backgroundColor: colors.primarySoft,
-    borderRadius: 2,
-    marginVertical: 20,
+    width: 45,
+    height: 2,
+    backgroundColor: colors.primary,
+    borderRadius: 1,
+    marginVertical: 24,
+    opacity: 0.5,
   },
   description: {
     fontSize: 17,
     color: colors.foreground,
     textAlign: 'center',
     lineHeight: 28,
-    opacity: 0.8,
+    opacity: 0.7,
   },
   footer: {
     paddingHorizontal: 30,
-    paddingBottom: 50,
+    paddingBottom: 40,
   },
   pagination: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 35,
   },
   dot: {
     height: 8,
     borderRadius: 4,
-    marginHorizontal: 5,
-  },
-  buttonWrapper: {
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 15,
-    elevation: 10,
+    marginHorizontal: 4,
   },
   button: {
     flexDirection: 'row',
-    paddingVertical: 22,
-    borderRadius: 40,
+    paddingVertical: 20,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: colors.primary
+    backgroundColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 6,
   },
   buttonText: {
     color: '#FFF',
-    fontSize: 16,
-    fontWeight: '900',
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
 });
