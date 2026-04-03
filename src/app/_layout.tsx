@@ -42,6 +42,8 @@ import { ThemeProvider } from "@/services/context/ThemeContext";
 
 import { useShallow } from 'zustand/shallow';
 import { useProfileStore } from "@/store/ProfileStore";
+import Purchases, {LOG_LEVEL} from 'react-native-purchases'
+
 
 SplashScreen.preventAutoHideAsync();
 
@@ -103,6 +105,23 @@ export default function RootLayout() {
       await SplashScreen.hideAsync();
     }
   }, [isReady, fontError]);
+
+  useEffect(() => {
+    Purchases.setLogLevel(__DEV__ ? LOG_LEVEL.VERBOSE : LOG_LEVEL.WARN);
+    const apiKey = __DEV__
+      ? process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY
+      : process.env.EXPO_PUBLIC_REVENUECAT_API_KEY;if (!apiKey) {
+  console.error(' RevenueCat API key is missing!');
+  return;
+}
+
+Purchases.configure({ apiKey });
+console.log(' RevenueCat configured with key:', apiKey.slice(0, 8) + '...');  }, []);  // ← UPDATED: Return null until fonts + store are ready
+  if ( !fontError) {
+    return null;
+  }
+
+
 
   // Show nothing while loading fonts + hydration
   if (!isReady && !fontError) {
