@@ -2,14 +2,14 @@
   "name": "grateful",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint",
-    "vercel-build": "expo export -p web"
+    "lint": "expo lint"
   },
   "dependencies": {
     "@better-auth/expo": "^1.5.5",
@@ -19,7 +19,9 @@
     "@hugeicons/core-free-icons": "^4.0.0",
     "@hugeicons/react-native": "^1.0.11",
     "@legendapp/list": "^2.0.19",
-    "@prisma/client": "^6.19.2",
+    "@prisma/adapter-pg": "^7.6.0",
+    "@prisma/client": "^7.6.0",
+    "@prisma/extension-accelerate": "^3.0.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/netinfo": "11.5.2",
     "@react-navigation/bottom-tabs": "^7.7.3",
@@ -27,7 +29,7 @@
     "@react-navigation/native": "^7.1.28",
     "@shopify/flash-list": "2.0.2",
     "@tanstack/react-query": "^5.90.21",
-    "better-auth": "^1.5.5",
+    "better-auth": "^1.5.6",
     "dayjs": "^1.11.19",
     "expo": "~55.0.5",
     "expo-background-fetch": "~55.0.10",
@@ -54,6 +56,7 @@
     "expo-store-review": "~55.0.9",
     "expo-symbols": "~55.0.5",
     "expo-system-ui": "~55.0.10",
+    "expo-updates": "~55.0.16",
     "expo-web-browser": "~55.0.10",
     "moti": "^0.30.0",
     "react": "19.2.0",
@@ -75,11 +78,13 @@
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.7.2",
     "ts-node": "^10.9.2",
-    "zustand": "^5.0.11"
+    "zustand": "^5.0.11",
+    "zustand-mmkv-storage": "^1.0.0"
   },
   "devDependencies": {
+    "@types/node": "^25.5.0",
     "@types/react": "~19.2.2",
-    "prisma": "^6.19.2",
+    "prisma": "^7.6.0",
     "typescript": "~5.9.2"
   },
   "private": true

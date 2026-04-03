@@ -13,7 +13,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/Text";
 import { router } from "expo-router";
 import { GRATEFUL_THEME } from "@/design/theme";
-import { useDailyPromises } from "@/hooks/useDailyPromise";
 import { GlassButton } from "@/components/ui/GlassButton";
 import Animated, {
   Extrapolation,
@@ -39,6 +38,8 @@ import * as ImageManipulator from "expo-image-manipulator";
 import { useDailyReminders } from "@/hooks/useDailyReminders";
 import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 import GlassTab from "@/components/GlassTab";
+import { useProfileStore } from "@/store/ProfileStore";
+import { useDailyPromises } from "@/store/DailyPromisesStore";
 
 const theme = GRATEFUL_THEME.light.colors;
 const { height: screenHeight, width: screenWidth } = Dimensions.get("window");
@@ -80,9 +81,13 @@ const PromiseItem = ({ item, index, height, scrollY }: any) => {
 
 
 export default function App() {
-  const { streakCount, updateStreak } = useStreak();
+
   const { atmosphere } = useTheme();
-  const { data: promises } = useDailyPromises();
+  const streakCount = useProfileStore((state) => state.streakCount);
+  const currentState = useProfileStore((state) => state.currentState); // "Growing", "Faithful", etc.
+  const tapStreak = useProfileStore((state) => state.tapStreak);
+
+  const { promises, userName, isReady } = useDailyPromises();
   const [isVisible, setIsVisible] = useState(false);
 
   const scanProgress = useSharedValue(0);
@@ -99,7 +104,9 @@ export default function App() {
   const openDonationPaywall = async () => {
     try {
 
-      const result = await RevenueCatUI.presentPaywall();
+      const result = await RevenueCatUI.presentPaywall({
+        
+      });
 
       switch (result) {
         case PAYWALL_RESULT.PURCHASED:
@@ -238,9 +245,17 @@ export default function App() {
   };
 
   const handleFavoritePress = () => {
-    updateStreak();  
+    tapStreak();  
     setShowHeartAnimation(true);
   };
+
+  if (!isReady || !promises?.length) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={{ textAlign: "center", marginTop: 100 }}>Preparing your daily promises...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: atmosphere.color }]}>

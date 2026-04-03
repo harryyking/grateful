@@ -1,12 +1,11 @@
+// src/hooks/useDailyReminders.ts
 import { useState, useEffect } from 'react';
 import * as Notifications from 'expo-notifications';
-import { authClient } from '@/lib/authClient';
 import {
-  requestNotificationPermission,
   schedulePersonalizedDailyPromiseNotification,
 } from '@/services/notifications/notifications';
 
-import { storage } from '@/services/context/ThemeContext';
+import { storage } from '@/services/context/ThemeContext'; // your MMKV / storage
 
 const REMINDERS_ENABLED_KEY = 'daily-reminders-enabled';
 
@@ -14,13 +13,12 @@ export function useDailyReminders() {
   const [isEnabled, setIsEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load saved preference on mount
+  // Load saved preference + re-schedule on app start
   useEffect(() => {
     const saved = storage.getBoolean(REMINDERS_ENABLED_KEY) ?? false;
     setIsEnabled(saved);
     setIsLoading(false);
 
-    // Optional: Re-schedule if already enabled (useful after app restart)
     if (saved) {
       schedulePersonalizedDailyPromiseNotification();
     }
@@ -32,24 +30,17 @@ export function useDailyReminders() {
 
     try {
       if (value) {
-        // User turned ON → schedule all 3 notifications
-        await schedulePersonalizedDailyPromiseNotification();
+        // await schedulePersonalizedDailyPromiseNotification();
       } else {
-        // User turned OFF → cancel ALL three notifications
-        await Notifications.cancelScheduledNotificationAsync("daily-promise-morning");
-        await Notifications.cancelScheduledNotificationAsync("daily-promise-afternoon");
-        await Notifications.cancelScheduledNotificationAsync("daily-promise-evening");
-
+        await Notifications.cancelScheduledNotificationAsync('daily-promise-morning');
+        await Notifications.cancelScheduledNotificationAsync('daily-promise-afternoon');
+        await Notifications.cancelScheduledNotificationAsync('daily-promise-evening');
         console.log('✅ All three daily reminders cancelled');
       }
     } catch (error) {
-      console.error("Failed to toggle daily reminders:", error);
+      console.error('Failed to toggle daily reminders:', error);
     }
   };
 
-  return {
-    isEnabled,
-    isLoading,
-    toggleReminders,
-  };
+  return { isEnabled, isLoading, toggleReminders };
 }

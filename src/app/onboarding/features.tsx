@@ -73,8 +73,6 @@ export default function FeatureScreen() {
   const Slide = ({ item }: { item: typeof DATA[0] }) => (
     <View style={styles.slideContainer}>
       <View style={styles.imageContainer}>
-        {/* Background Ring Detail */}
-        <View style={styles.iconRing} />
         
         <Image
           source={item.image}

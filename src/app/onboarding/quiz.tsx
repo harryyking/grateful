@@ -18,10 +18,13 @@ import { useRouter } from "expo-router";
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { Text } from "@/components/ui/Text"; 
-import { useOnboardingStatus } from "@/hooks/useOnboardingStatus";
+
 import Splash from "@/components/Splash";
 import { authClient } from "@/lib/authClient";
 import { GRATEFUL_THEME } from "@/design/theme";
+import { OnboardingAnswers } from "@/types/promiseTypes";
+import { useProfileStore } from "@/store/ProfileStore";
+import { useOnboardingStatus } from "@/hooks/useOnboardingStatus";
 
 const { width } = Dimensions.get("window");
 
@@ -146,19 +149,20 @@ export default function OnboardingScreen() {
   const currentQuestion = ONBOARDING_QUESTIONS[index];
   const progress = ((index + 1) / ONBOARDING_QUESTIONS.length) * 100;
   const [isLoading, setIsLoading] = useState(false)
-  ;
+
   const { isCompleted, isLoading: checkingStatus } = useOnboardingStatus();
-  const cookieHeader = authClient.getCookie();  
-  if (checkingStatus) {
-    return (
-    <Splash/>
-    );
-  }
 
-  if(isCompleted) {
-    router.replace('/home')
-  }
+// ← NEW: Get the action from our Zustand store
+const completeOnboarding = useProfileStore((state) => state.completeOnboarding);
 
+if (checkingStatus) {
+  return <Splash />;
+}
+
+if (isCompleted) {
+  router.replace('/home');
+  return null;
+}
   const handleOptionSelect = (value: string) => {
     Haptics.selectionAsync();
 
@@ -200,12 +204,11 @@ export default function OnboardingScreen() {
     if (!isStepValid()) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-    // === FIX 1: Always send the latest text input (type-safe payload) ===
+    // === Always send latest text input for text questions ===
     const answersToSend: Answers = currentQuestion.type === "text"
       ? { ...answers, [currentQuestion.id]: textInput.trim() }
       : answers;
 
-    // Update state for consistency
     if (currentQuestion.type === "text") {
       setAnswers(answersToSend);
     }
@@ -214,35 +217,23 @@ export default function OnboardingScreen() {
       setIndex((prev) => prev + 1);
       if (currentQuestion.type === "text") setTextInput("");
     } else {
-      // === FINAL STEP ===
+      // === FINAL STEP – now fully local ===
       setIsLoading(true);
-      try {
-        const res = await fetch(`/api/complete-onboarding`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", 
-            "Cookie" : cookieHeader || ''
-          },
-          body: JSON.stringify(answersToSend),
-          credentials: "omit",
-        });
 
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error("API error:", res.status, errorText);
-          throw new Error(`HTTP ${res.status}`);
-        }
+      try {
+        // ← THIS IS THE ONLY CHANGE
+        completeOnboarding(answersToSend as unknown as OnboardingAnswers);
 
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         router.replace("/onboarding/features");
       } catch (error) {
-        console.error("Save failed:", error);
-        alert("Something went wrong. Please try again.\n\nCheck your console for details.");
+        console.error("Onboarding save failed:", error);
+        alert("Something went wrong. Please try again.");
       } finally {
         setIsLoading(false);
       }
     }
   };
-
 
   const isOptionSelected = (value: string): boolean => {
     const answer = answers[currentQuestion.id];

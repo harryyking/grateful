@@ -1,56 +1,43 @@
-import { useEffect, useState } from 'react';
-import { authClient } from '@/lib/authClient';
+// hooks/useOnboardingStatus.ts  (or src/hooks/useOnboardingStatus.ts)
+
+import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
+import { useProfileStore } from '@/store/ProfileStore';
 
 export type OnboardingStatus = {
   isCompleted: boolean;
   isLoading: boolean;
-  profile: any | null; // you can type this better later
+  profile: any | null;   // you can make this a proper type later
 };
 
 export function useOnboardingStatus() {
   const router = useRouter();
-  const [status, setStatus] = useState<OnboardingStatus>({
-    isCompleted: false,
-    isLoading: true,
-    profile: null,
-  });
 
+  // Get only what we need from Zustand (super performant)
+  const { hasCompletedOnboarding, hasHydrated, ...profileData } = useProfileStore(
+    (state) => ({
+      hasCompletedOnboarding: state.hasCompletedOnboarding,
+      hasHydrated: state.hasHydrated,
+      name: state.name,
+      currentState: state.currentState,
+      // add any other fields you want to expose here
+    })
+  );
+
+  // Loading is only true while the store is still hydrating
+  const isLoading = !hasHydrated;
+  const isCompleted = hasCompletedOnboarding;
+
+  // Auto-redirect when we're ready and onboarding is done
   useEffect(() => {
-    const checkOnboarding = async () => {
-      try {
-        // Get current session from Better Auth (client-side)
-        const { data: session } = await authClient.getSession();
+    if (hasHydrated && isCompleted) {
+      router.replace('/home');
+    }
+  }, [hasHydrated, isCompleted, router]);
 
-        if (!session?.user) {
-          setStatus({ isCompleted: false, isLoading: false, profile: null });
-          return;
-        }
-
-        // Call a lightweight API to check profile
-        const res = await fetch('/api/onboarding-status');
-        const data = await res.json();
-
-        const isCompleted = data.hasCompletedOnboarding === true;
-
-        setStatus({
-          isCompleted,
-          isLoading: false,
-          profile: data,
-        });
-
-        // Auto-redirect if already completed
-        if (isCompleted) {
-          router.replace('/home');
-        }
-      } catch (error) {
-        console.error('Failed to check onboarding status:', error);
-        setStatus({ isCompleted: false, isLoading: false, profile: null });
-      }
-    };
-
-    checkOnboarding();
-  }, [router]);
-
-  return status;
+  return {
+    isCompleted,
+    isLoading,
+    profile: isLoading ? null : profileData,   // only return real data after hydration
+  } satisfies OnboardingStatus;
 }

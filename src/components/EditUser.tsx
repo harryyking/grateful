@@ -13,57 +13,46 @@ import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { authClient } from '@/lib/authClient';
 import { queryClient } from '@/lib/QueryClient';
+import { useProfileStore } from '@/store/ProfileStore';
 
 interface EditNameProps {
   isVisible: boolean;
   onClose: () => void;
-  initialName: string;
-  // onSuccess: (newName: string) => void;
+  
 }
 
-export const EditUserNameModal = ({ isVisible, onClose, initialName,  }: EditNameProps) => {
-  const [name, setName] = useState(initialName);
+export const EditUserNameModal = ({ isVisible, onClose, }: EditNameProps) => {
+  const [localName, setLocalName] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Get both current name and action from store
+  const currentName = useProfileStore((state) => state.name);
+  const updateName = useProfileStore((state) => state.updateName);
 
-  useEffect(() => {
-    if (isVisible) {
-      setName(initialName);
-    }
-  }, [isVisible, initialName]);
+  // Reset local state when modal opens
+  // useEffect(() => {
+  //   if (isVisible) {
+  //     setLocalName(currentName || 'Beloved');
+  //   }
+  // }, [isVisible, currentName]);
 
   const handleUpdate = async () => {
-    if (!name.trim()) return;
-    const cookieHeader = authClient.getCookie();  
-    
+    const trimmedName = localName.trim();
+    if (!trimmedName) return;
+
     setLoading(true);
+
     try {
-      const response = await fetch('/api/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json',
-          "Cookie": cookieHeader || "",   
-         },
-        body: JSON.stringify({ name: name.trim() }),
-      });
+      // Call the store action (which now handles both local + optional API)
+      await updateName(trimmedName);     // ← We made updateName async in previous suggestion
 
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.error || 'Failed to update');
-
-
-      await queryClient.invalidateQueries({ 
-        queryKey: ['profile'] 
-      });
-      
-      // onSuccess(data.profile.name);
       onClose();
     } catch (error: any) {
-      Alert.alert("Update Failed", error.message);
+      Alert.alert("Update Failed", error.message || "Could not update name");
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <Modal animationType="fade" transparent visible={isVisible} onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>
@@ -78,8 +67,8 @@ export const EditUserNameModal = ({ isVisible, onClose, initialName,  }: EditNam
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
-              value={name}
-              onChangeText={setName}
+              value={localName}
+              onChangeText={setLocalName}
               placeholder="Enter your name"
               placeholderTextColor="rgba(255,255,255,0.3)"
               autoFocus
@@ -94,9 +83,9 @@ export const EditUserNameModal = ({ isVisible, onClose, initialName,  }: EditNam
             </Pressable>
             
             <Pressable 
-              style={[styles.saveBtn, (!name.trim() || loading) && styles.disabledBtn]} 
-              onPress={handleUpdate}
-              disabled={loading || !name.trim()}
+               style={[styles.saveBtn, (!localName.trim() || loading) && styles.disabledBtn]}
+               onPress={handleUpdate}
+               disabled={loading || !localName.trim()}
             >
               {loading ? (
                 <ActivityIndicator color="#2b2724" size="small" />
