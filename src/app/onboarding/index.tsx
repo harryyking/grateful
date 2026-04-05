@@ -20,28 +20,10 @@ const WelcomeImage = require("@/assets/images/welcome.jpg");
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const [signingIn, setSigningIn] = useState(false);
-  const completeOnboarding = useProfileStore((state) => state.completeOnboarding);
 
   const handleBeginJourney = async () => {
-    setSigningIn(true);
-    try {
-      completeOnboarding({
-        name: "Beloved",           // default
-        current_state: "Growing",
-        desire: "",
-        struggle: [],
-        reminder_time: "morning",
-        final_word: "",
-      } as any); 
-
       router.replace("/onboarding/quiz");
-    } catch (error) {
-      console.error(error);
-      alert("Unable to start your journey. Please try again.");
-    } finally {
-      setSigningIn(false);
-    }
+ 
   };
   
   return (
