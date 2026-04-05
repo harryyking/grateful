@@ -20,7 +20,9 @@ interface ProfileState {
   widgetsUnlocked: boolean;
 
   hasHydrated: boolean;
+  lastReviewPrompt: number;
 
+  setLastReviewPrompt: (timestamp: number) => void;
   // Actions
   completeOnboarding: (answers: OnboardingAnswers) => void;
   updateName: (name: string) => void;
@@ -47,6 +49,8 @@ export const useProfileStore = create<ProfileState>()(
       widgetsUnlocked: false,
 
       hasHydrated: false,
+      lastReviewPrompt: 0,
+      setLastReviewPrompt: (timestamp: number) => set({ lastReviewPrompt: timestamp }),
 
       completeOnboarding: (answers: OnboardingAnswers) => {
         set((state) => ({
@@ -150,6 +154,7 @@ export const useProfileStore = create<ProfileState>()(
         streakCount: state.streakCount,
         lastStreakDate: state.lastStreakDate,
         widgetsUnlocked: state.widgetsUnlocked,
+        lastReviewPrompt: state.lastReviewPrompt,
       }),
 
       version: 2,

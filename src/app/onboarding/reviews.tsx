@@ -1,29 +1,33 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   StyleSheet,
   View,
   TouchableOpacity,
   Dimensions,
   Animated,
+  Platform,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Text } from '@/components/ui/Text';
 import { GRATEFUL_THEME } from '@/design/theme';
+import * as StoreReview from 'expo-store-review';
+import { useProfileStore } from '@/store/ProfileStore';   // ← make sure path is correct
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.85;
 const SPACING = 16;
 
-const {colors, radius} = GRATEFUL_THEME.light
+const { colors, radius } = GRATEFUL_THEME.light;
 
 const REVIEWS_DATA = [
   {
     id: '1',
     name: 'Emmanuel Arthur',
     content: "The daily verses always seem to hit exactly what I'm walking through. It's become my favorite way to pause and invite God into my morning before the noise of the world starts.",
-    milestone: 'Growing', // Focus on consistency in the Word
+    milestone: 'Growing',
   },
   {
     id: '2',
@@ -42,17 +46,55 @@ const REVIEWS_DATA = [
 export default function ReviewsScreen() {
   const scrollX = useRef(new Animated.Value(0)).current;
 
+  // Get review prompt state from Zustand
+  const { lastReviewPrompt, setLastReviewPrompt } = useProfileStore();
+
+  useEffect(() => {
+    const askForReview = async () => {
+      const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+      const now = Date.now();
+
+      // Don't ask again if we already asked in the last 30 days
+      if (lastReviewPrompt && now - lastReviewPrompt < THIRTY_DAYS_MS) {
+        return;
+      }
+
+      try {
+        const isAvailable = await StoreReview.isAvailableAsync();
+
+        if (isAvailable) {
+          await StoreReview.requestReview(); // ← native in-app review popup
+        } else {
+          // Fallback: open store page
+          const url = Platform.select({
+            ios: "https://apps.apple.com/app/6761614902",
+            android: "https://play.google.com/store/apps/details?id=com.harryyking.grateful",
+          });
+          if (url) await Linking.openURL(url);
+        }
+
+        // Save that we asked
+        setLastReviewPrompt(now);
+      } catch (error) {
+        console.error('StoreReview error:', error);
+      }
+    };
+
+    // Small delay so the slide feels finished
+    const timer = setTimeout(askForReview, 1200);
+
+    return () => clearTimeout(timer);
+  }, [lastReviewPrompt, setLastReviewPrompt]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      
       <View style={styles.contentWrapper}>
-        
         {/* Header Section */}
         <View style={styles.header}>
           <View style={styles.iconWrapper}>
             <MaterialIcons name="flare" size={36} color={colors.primary} />
           </View>
-          <Text variant='h1'>Impact</Text>
+          <Text variant="h1">Impact</Text>
           <Text style={styles.subhead}>
             Join a community of believers finding daily grace and seeking more of God.
           </Text>
@@ -85,8 +127,8 @@ export default function ReviewsScreen() {
               });
 
               return (
-                <Animated.View 
-                  key={item.id} 
+                <Animated.View
+                  key={item.id}
                   style={[styles.card, { transform: [{ scale }] }]}
                 >
                   <View style={styles.cardHeader}>
@@ -114,14 +156,15 @@ export default function ReviewsScreen() {
 
         {/* Footer / Action Area */}
         <View style={styles.footer}>
-          <TouchableOpacity activeOpacity={0.8} style={styles.button} onPress={() => router.push('/home')}>
-        
-              <Text style={styles.buttonText}>Begin Your Journey</Text>
-              <MaterialIcons name="arrow-forward" size={20} color={colors.primaryForeground} />
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.button}
+            onPress={() => router.push('/home')}
+          >
+            <Text style={styles.buttonText}>Begin Your Journey</Text>
+            <MaterialIcons name="arrow-forward" size={20} color={colors.primaryForeground} />
           </TouchableOpacity>
-
         </View>
-
       </View>
     </SafeAreaView>
   );

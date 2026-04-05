@@ -14,14 +14,9 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/Text";
 import { router } from "expo-router";
 import { GRATEFUL_THEME } from "@/design/theme";
-import { useQuery } from "@tanstack/react-query";
-import { authClient } from "@/lib/authClient";
 import StoreReview from "expo-store-review";
 import { useDailyReminders } from "@/hooks/useDailyReminders";
-import { schedulePersonalizedDailyPromiseNotification } from "@/services/notifications/notifications";
 import { EditUserNameModal } from "@/components/EditUser";
-import { useProfile } from "@/hooks/useProfile";
-import { SkeletonLoader } from "@/components/SkeletonLoader";
 import { useProfileStore } from "@/store/ProfileStore";
 
 // Pulling your exact theme requirements
@@ -100,45 +95,43 @@ export default function ProfileScreen() {
 
   // Open Privacy Policy
   const openPrivacy = () => {
-    Linking.openURL("https://grateful-blond.vercel.app/privacy");
+    Linking.openURL("https://grateful-bible-verses.vercel.app/privacy");
   };
 
   // Open Terms
   const openTerms = () => {
-    Linking.openURL("https://grateful-blond.vercel.app/terms");
+    Linking.openURL("https://grateful-bible-verses.vercel.app/terms");
   };
 
   // Request App Review using Expo Store Review
   const requestReview = async () => {
-    Alert.alert(
-      "Enjoying Grateful?",
-      "Would you like to rate us on the App Store?",
-      [
-        {
-          text: "Not Now",
-          style: "cancel",
-        },
-        {
-          text: "Rate Now",
-          onPress: async () => {
-            const isAvailable = await StoreReview.isAvailableAsync();
-
-            if (isAvailable) {
-              await StoreReview.requestReview();
-            } else {
-              // Fallback to store URL
-              const url = Platform.select({
-                ios: "https://apps.apple.com/app/idYOUR_APP_ID", // ← CHANGE THIS
-                android:
-                  "https://play.google.com/store/apps/details?id=YOUR_PACKAGE_NAME", // ← CHANGE THIS
-              });
-
-              if (url) Linking.openURL(url);
-            }
-          },
-        },
-      ]
-    );
+    try {
+      const isAvailable = await StoreReview.isAvailableAsync();
+  
+      if (isAvailable) {
+        // This is the ONLY correct way to trigger the native review prompt
+        await StoreReview.requestReview();
+      } else {
+        // Fallback for simulator, web, or older devices
+        const url = Platform.select({
+          ios: "https://apps.apple.com/app/6761614902",
+          android: "https://play.google.com/store/apps/details?id=com.harryyking.grateful",
+          default: null,
+        });
+  
+        if (url) {
+          await Linking.openURL(url);
+        }
+      }
+    } catch (error) {
+      console.error("StoreReview error:", error);
+      // Silent fallback — never crash the app
+      const url = Platform.select({
+        ios: "https://apps.apple.com/app/6761614902",
+        android: "https://play.google.com/store/apps/details?id=com.harryyking.grateful",
+      });
+      if (url) Linking.openURL(url);
+    }
   };
   // Contact Support (opens email)
   const contactSupport = () => {

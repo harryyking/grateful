@@ -56,6 +56,7 @@ export default function RootLayout() {
     }))
   );
 
+
   // Fonts
   const [dmSansLoaded, dmSansError] = useDMSans({
     DMSans_300Light,
@@ -101,30 +102,29 @@ export default function RootLayout() {
   }, [isReady, hasCompletedOnboarding, segments, router]);
 
   const onLayoutRootView = useCallback(async () => {
-    if (isReady || fontError) {
+    if (isReady) {
       await SplashScreen.hideAsync();
     }
-  }, [isReady, fontError]);
+  }, [isReady]);
 
+  // ← RevenueCat configure stays exactly where it is
   useEffect(() => {
     Purchases.setLogLevel(__DEV__ ? LOG_LEVEL.VERBOSE : LOG_LEVEL.WARN);
     const apiKey = __DEV__
       ? process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY
-      : process.env.EXPO_PUBLIC_REVENUECAT_API_KEY;if (!apiKey) {
-  console.error(' RevenueCat API key is missing!');
-  return;
-}
+      : process.env.EXPO_PUBLIC_REVENUECAT_API_KEY;
 
-Purchases.configure({ apiKey });
-console.log(' RevenueCat configured with key:', apiKey.slice(0, 8) + '...');  }, []);  // ← UPDATED: Return null until fonts + store are ready
-  if ( !fontError) {
-    return null;
-  }
+    if (!apiKey) {
+      console.error("RevenueCat API key is missing!");
+      return;
+    }
 
+    Purchases.configure({ apiKey });
+    console.log("RevenueCat configured with key:", apiKey.slice(0, 8) + "...");
+  }, []);
 
-
-  // Show nothing while loading fonts + hydration
-  if (!isReady && !fontError) {
+  // CRITICAL: Only return null while still loading
+  if (!isReady) {
     return null;
   }
 
@@ -151,13 +151,13 @@ console.log(' RevenueCat configured with key:', apiKey.slice(0, 8) + '...');  },
               <Stack.Screen name="home" />
               <Stack.Screen name="profile/index" />
               <Stack.Screen name="themes/index" options={{ presentation: "formSheet",
-                  sheetAllowedDetents: [0.6, 0.9],   
+                  sheetAllowedDetents: [ 0.9],   
                   sheetInitialDetentIndex: 0,           
                   sheetGrabberVisible: true, 
                   sheetCornerRadius: 20,    
                }} />
               <Stack.Screen name="widget/index" options={{ presentation: "formSheet", 
-                 sheetAllowedDetents: [0.6, 0.9],   
+                 sheetAllowedDetents: [0.9],   
                  sheetInitialDetentIndex: 0,           
                  sheetGrabberVisible: true, 
                  sheetCornerRadius: 20, 

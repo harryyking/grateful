@@ -13,8 +13,6 @@ import { MotiView } from "moti";
 import { LinearGradient } from "expo-linear-gradient";
 import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
-import { authClient } from "@/lib/authClient";
-import Splash from "@/components/Splash";
 import { useProfileStore } from "@/store/ProfileStore";
 const { width, height } = Dimensions.get("window");
 

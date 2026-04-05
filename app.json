@@ -5,19 +5,14 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "grateful",
-    "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#2b2724"
-    },
+    "scheme": "grateful",  
     "ios": {
       "icon": "./assets/images/icon.png",
       "bundleIdentifier": "com.harryyking.grateful",
       "supportsTablet": false,            
       "requireFullScreen": true,  
       "infoPlist": {
+        "CFBundleDisplayName": "Grateful",
         "ITSAppUsesNonExemptEncryption": false
       },
       "entitlements": {
@@ -38,10 +33,9 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#2b2724",
-          "android": {
-            "image": "./assets/images/splash.png",
-            "imageWidth": 200
-          }
+          "image": "./assets/images/splash.png",
+          "resizeMode": "contain",
+          "imageWidth": 200
         }
       ],
       "expo-sharing",
