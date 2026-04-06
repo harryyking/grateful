@@ -29,7 +29,7 @@ export type Atmosphere = {
 
 // ... (Keep your ATMOSPHERES array exactly as it is) ...
 export const ATMOSPHERES: Atmosphere[] = [
-  { id: "1", name: "Original", color: "#2b2724", type: "solid" },
+  { id: "1", name: "Original", color: "#443734", type: "solid" },
   {
     id: "2",
     name: "Valley",

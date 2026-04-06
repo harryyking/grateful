@@ -2,12 +2,12 @@ export const GRATEFUL_THEME = {
   light: {
     colors: {
       /* 🌿 FOUNDATION (Soft, spiritual, calm) */
-      background: '#2b2724',        // warm ivory
+      background: '#443734',        // warm ivory
       surface: '#FFFFFF',
       surfaceLow: '#F6F3EC',
       card: "#3a3633",
       
-      foreground: '#ffffff',        // softer than pure black
+      foreground: '#eaded7',        // softer than pure black
       onBackground: '#4A3B28',
 
       /* 🕊️ BRAND (Divine gold energy) */
