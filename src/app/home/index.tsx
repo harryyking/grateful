@@ -30,8 +30,7 @@ import StreakGlass from "@/components/StreakGlass";
 import { useStreak } from "@/hooks/useStreak";
 import { HeartAnimation } from "@/components/HeartAnimation";
 import * as Notifications from 'expo-notifications';
-import { authClient } from "@/lib/authClient";
-
+import Purchases from 'react-native-purchases'
 import { captureScreen } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -103,9 +102,19 @@ export default function App() {
 
   const openDonationPaywall = async () => {
     try {
+      const offerings = await Purchases.getOfferings();
+
+      // 2. Get your specific "donation" offering
+      const donationOffering = offerings.all["donation"];   // key = your offering identifier
+  
+      if (!donationOffering) {
+        Alert.alert("Error", "Donation offering not found. Please check RevenueCat dashboard.");
+        return;
+      }
+
 
       const result = await RevenueCatUI.presentPaywall({
-        
+        offering: donationOffering
       });
 
       switch (result) {

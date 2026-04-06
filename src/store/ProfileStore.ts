@@ -21,9 +21,9 @@ interface ProfileState {
 
   hasHydrated: boolean;
   lastReviewPrompt: number;
-
-  setLastReviewPrompt: (timestamp: number) => void;
   // Actions
+  setLastReviewPrompt: (timestamp: number) => void;
+  finishOnboarding: () => void;  
   completeOnboarding: (answers: OnboardingAnswers) => void;
   updateName: (name: string) => void;
   tapStreak: () => { streakCount: number; status: string };
@@ -60,8 +60,12 @@ export const useProfileStore = create<ProfileState>()(
           biggestChallenge: answers.struggle || [],
           encouragementTime: answers.reminder_time ?? 'morning',
           finalMotivation: answers.final_word ?? '',
-          hasCompletedOnboarding: true,
         }));
+      },
+
+
+      finishOnboarding: () => {
+        set({ hasCompletedOnboarding: true });
       },
 
       updateName: (newName: string) => {

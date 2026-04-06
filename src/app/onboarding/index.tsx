@@ -22,7 +22,7 @@ export default function WelcomeScreen() {
   const router = useRouter();
 
   const handleBeginJourney = async () => {
-      router.replace("/onboarding/quiz");
+      router.push("/onboarding/quiz");
  
   };
   

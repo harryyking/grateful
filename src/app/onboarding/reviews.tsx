@@ -14,7 +14,7 @@ import { router } from 'expo-router';
 import { Text } from '@/components/ui/Text';
 import { GRATEFUL_THEME } from '@/design/theme';
 import * as StoreReview from 'expo-store-review';
-import { useProfileStore } from '@/store/ProfileStore';   // ← make sure path is correct
+import { useProfileStore } from '@/store/ProfileStore';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.85;
@@ -46,15 +46,14 @@ const REVIEWS_DATA = [
 export default function ReviewsScreen() {
   const scrollX = useRef(new Animated.Value(0)).current;
 
-  // Get review prompt state from Zustand
-  const { lastReviewPrompt, setLastReviewPrompt } = useProfileStore();
+  // Get review prompt state + finish onboarding from Zustand
+  const { lastReviewPrompt, setLastReviewPrompt, finishOnboarding } = useProfileStore();
 
   useEffect(() => {
     const askForReview = async () => {
       const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
       const now = Date.now();
 
-      // Don't ask again if we already asked in the last 30 days
       if (lastReviewPrompt && now - lastReviewPrompt < THIRTY_DAYS_MS) {
         return;
       }
@@ -63,9 +62,8 @@ export default function ReviewsScreen() {
         const isAvailable = await StoreReview.isAvailableAsync();
 
         if (isAvailable) {
-          await StoreReview.requestReview(); // ← native in-app review popup
+          await StoreReview.requestReview();
         } else {
-          // Fallback: open store page
           const url = Platform.select({
             ios: "https://apps.apple.com/app/6761614902",
             android: "https://play.google.com/store/apps/details?id=com.harryyking.grateful",
@@ -73,18 +71,20 @@ export default function ReviewsScreen() {
           if (url) await Linking.openURL(url);
         }
 
-        // Save that we asked
         setLastReviewPrompt(now);
       } catch (error) {
         console.error('StoreReview error:', error);
       }
     };
 
-    // Small delay so the slide feels finished
     const timer = setTimeout(askForReview, 1200);
-
     return () => clearTimeout(timer);
   }, [lastReviewPrompt, setLastReviewPrompt]);
+
+  const handleFinishOnboarding = () => {
+    finishOnboarding();           // ← Only flips hasCompletedOnboarding to true
+    router.push('/home');         // You can change to router.replace('/home') if you prefer
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -159,7 +159,7 @@ export default function ReviewsScreen() {
           <TouchableOpacity
             activeOpacity={0.8}
             style={styles.button}
-            onPress={() => router.push('/home')}
+            onPress={handleFinishOnboarding}   // ← Updated here
           >
             <Text style={styles.buttonText}>Begin Your Journey</Text>
             <MaterialIcons name="arrow-forward" size={20} color={colors.primaryForeground} />
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: colors.glow,
     transform: [{ scale: 1.5 }],
-    filter: 'blur(40px)', // If supporting web, otherwise rely on the low opacity
+    filter: 'blur(40px)',
   },
   heartGlow: {
     position: 'absolute',
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     borderRadius: radius.lg,
     gap: 10,
-    backgroundColor: colors.primary
+    backgroundColor: colors.primary,
   },
   buttonText: {
     color: colors.primaryForeground,

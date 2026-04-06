@@ -20,11 +20,9 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Text } from "@/components/ui/Text"; 
 
 import Splash from "@/components/Splash";
-import { authClient } from "@/lib/authClient";
 import { GRATEFUL_THEME } from "@/design/theme";
 import { OnboardingAnswers } from "@/types/promiseTypes";
 import { useProfileStore } from "@/store/ProfileStore";
-import { useOnboardingStatus } from "@/hooks/useOnboardingStatus";
 
 const { width } = Dimensions.get("window");
 
@@ -150,19 +148,11 @@ export default function OnboardingScreen() {
   const progress = ((index + 1) / ONBOARDING_QUESTIONS.length) * 100;
   const [isLoading, setIsLoading] = useState(false)
 
-  const { isCompleted, isLoading: checkingStatus } = useOnboardingStatus();
 
 // ← NEW: Get the action from our Zustand store
 const completeOnboarding = useProfileStore((state) => state.completeOnboarding);
 
-if (checkingStatus) {
-  return <Splash />;
-}
 
-if (isCompleted) {
-  router.replace('/home');
-  return null;
-}
   const handleOptionSelect = (value: string) => {
     Haptics.selectionAsync();
 
