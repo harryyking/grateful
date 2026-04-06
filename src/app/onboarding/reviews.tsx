@@ -7,6 +7,7 @@ import {
   Animated,
   Platform,
   Linking,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -49,37 +50,50 @@ export default function ReviewsScreen() {
   // Get review prompt state + finish onboarding from Zustand
   const { lastReviewPrompt, setLastReviewPrompt, finishOnboarding } = useProfileStore();
 
-  useEffect(() => {
-    const askForReview = async () => {
-      const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
-      const now = Date.now();
+  const showReviewPrompt = () => {
+    const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
 
-      if (lastReviewPrompt && now - lastReviewPrompt < THIRTY_DAYS_MS) {
-        return;
-      }
+    if (lastReviewPrompt && now - lastReviewPrompt < THIRTY_DAYS_MS) {
+      return;
+    }
 
-      try {
-        const isAvailable = await StoreReview.isAvailableAsync();
+    Alert.alert(
+      "Would You Like to Leave a Review?",
+      "Your feedback helps us spread God's Word to more people. It only takes a moment.",
+      [
+        {
+          text: "Not Now",
+          style: "cancel",
+        },
+        {
+          text: "Yes, I'd Love To",
+          style: "default",
+          onPress: async () => {
+            try {
+              const isAvailable = await StoreReview.isAvailableAsync();
 
-        if (isAvailable) {
-          await StoreReview.requestReview();
-        } else {
-          const url = Platform.select({
-            ios: "https://apps.apple.com/app/6761614902",
-            android: "https://play.google.com/store/apps/details?id=com.harryyking.grateful",
-          });
-          if (url) await Linking.openURL(url);
-        }
+              if (isAvailable) {
+                await StoreReview.requestReview();
+              } else {
+                // Fallback: open App Store page
+                const url = Platform.select({
+                  ios: "https://apps.apple.com/app/6761614902",
+                  android: "https://play.google.com/store/apps/details?id=com.harryyking.grateful",
+                });
+                if (url) await Linking.openURL(url);
+              }
 
-        setLastReviewPrompt(now);
-      } catch (error) {
-        console.error('StoreReview error:', error);
-      }
-    };
-
-    const timer = setTimeout(askForReview, 1200);
-    return () => clearTimeout(timer);
-  }, [lastReviewPrompt, setLastReviewPrompt]);
+              // Record that we asked
+              setLastReviewPrompt(now);
+            } catch (error) {
+              console.error('StoreReview error:', error);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const handleFinishOnboarding = () => {
     finishOnboarding();           // ← Only flips hasCompletedOnboarding to true
@@ -156,6 +170,15 @@ export default function ReviewsScreen() {
 
         {/* Footer / Action Area */}
         <View style={styles.footer}>
+        <TouchableOpacity
+            activeOpacity={0.7}
+            style={styles.reviewButton}
+            onPress={showReviewPrompt}
+          >
+            <MaterialIcons name="star" size={22} color={colors.primary} />
+            <Text style={styles.reviewButtonText}>Leave a Review</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity
             activeOpacity={0.8}
             style={styles.button}
@@ -306,6 +329,19 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: 24,
     paddingBottom: 20,
+  },
+  reviewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    marginBottom: 16,
+  },
+  reviewButtonText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
   },
   buttonShadow: {
     shadowColor: colors.accent,

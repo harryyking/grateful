@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,12 +8,20 @@ import {
   Animated,
   Platform,
 } from 'react-native';
-import { Image } from 'expo-image'; // Optimized Image Component
+import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GRATEFUL_THEME } from '@/design/theme';
 import { router } from 'expo-router';
 import { Text } from '@/components/ui/Text';
+
+// ─────────────────────────────────────────────────────────────
+// LOCAL ASSETS IMPORTS (bundled with your app → instant loading)
+// ─────────────────────────────────────────────────────────────
+const dailyPromisesImg = require('@/assets/images/mockup-forest.png');
+const dailyRemindersImg = require('@/assets/images/notification.png');
+const widgetAccessImg = require('@/assets/images/onboarding/widget-access.png');
+const setThemesImg = require('@/assets/images/onboarding/set-themes.png');
 
 const { width } = Dimensions.get('window');
 const { colors, radius } = GRATEFUL_THEME.light;
@@ -23,25 +31,25 @@ const DATA = [
     id: '1',
     title: 'Daily Promises',
     desc: 'Start every morning with a sacred word to ground your identity and find peace.',
-    image: 'https://o3k82hwwfa.ufs.sh/f/cQKwx0ZpHag1PGJy4ZotiKCfbDrk0elzM8HjWALqUNymES64',
+    image: dailyPromisesImg,
   },
   {
     id: '2',
     title: 'Daily Reminders',
     desc: 'Custom notifications that act as a shield during your most vulnerable hours.',
-    image: 'https://o3k82hwwfa.ufs.sh/f/cQKwx0ZpHag1QxDWIaEIRVWjzrd7ePZiY5GAuSp28yM4FtNc',
+    image: dailyRemindersImg,
   },
   {
     id: '3',
     title: 'Widget Access',
     desc: 'Keep the word visible with beautiful home screen widgets for instant strength.',
-    image: 'https://o3k82hwwfa.ufs.sh/f/cQKwx0ZpHag17Ch4zLLszunHVADrjbLglahtpE5s28F1TGZW',
+    image: widgetAccessImg,
   },
   {
     id: '4',
     title: 'Set Themes',
     desc: 'Choose from dawn, midday, or midnight themes to suit your quiet time.',
-    image: 'https://o3k82hwwfa.ufs.sh/f/cQKwx0ZpHag1o6HOFxlsG9XMuDq8bIaE435vpAHwBrFjP0lL',
+    image: setThemesImg,
   },
 ];
 
@@ -49,12 +57,6 @@ export default function FeatureScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollX = useRef(new Animated.Value(0)).current;
   const slidesRef = useRef<FlatList>(null);
-
-  // PRE-FETCH IMAGES: Downloads images to cache immediately on mount
-  useEffect(() => {
-    const urls = DATA.map(item => item.image);
-    Image.prefetch(urls);
-  }, []);
 
   const viewableItemsChanged = useRef(({ viewableItems }: any) => {
     if (viewableItems.length > 0) {
@@ -73,18 +75,17 @@ export default function FeatureScreen() {
   const Slide = ({ item }: { item: typeof DATA[0] }) => (
     <View style={styles.slideContainer}>
       <View style={styles.imageContainer}>
-        
         <Image
-          source={item.image}
+          source={item.image}           // ← now local asset
           style={styles.image}
           contentFit="contain"
-          transition={500} // Smooth fade-in
-          cachePolicy="memory-disk" // Ensure it stays on the device
+          transition={500}
+          cachePolicy="memory-disk"
         />
       </View>
 
       <View style={styles.textContainer}>
-        <Text variant='h1' style={styles.title}>{item.title}</Text>
+        <Text variant="h1" style={styles.title}>{item.title}</Text>
         <View style={styles.divider} />
         <Text style={styles.description}>{item.desc}</Text>
       </View>
@@ -95,7 +96,7 @@ export default function FeatureScreen() {
     <SafeAreaView style={styles.container}>
       {/* Decorative Glow */}
       <View style={styles.ambientGlowTop} />
-      
+
       <FlatList
         data={DATA}
         renderItem={({ item }) => <Slide item={item} />}
@@ -128,21 +129,21 @@ export default function FeatureScreen() {
               extrapolate: 'clamp',
             });
             return (
-              <Animated.View 
-                style={[styles.dot, { width: dotWidth, opacity, backgroundColor: colors.primary }]} 
-                key={i.toString()} 
+              <Animated.View
+                style={[styles.dot, { width: dotWidth, opacity, backgroundColor: colors.primary }]}
+                key={i.toString()}
               />
             );
           })}
         </View>
 
-        <TouchableOpacity 
-          style={styles.button} 
-          onPress={scrollToNext} 
+        <TouchableOpacity
+          style={styles.button}
+          onPress={scrollToNext}
           activeOpacity={0.85}
         >
           <Text style={styles.buttonText}>
-            {currentIndex === DATA.length - 1 ? "Begin your Journey" : "Continue"}
+            {currentIndex === DATA.length - 1 ? 'Begin your Journey' : 'Continue'}
           </Text>
           <MaterialIcons name="chevron-right" size={22} color="#FFF" />
         </TouchableOpacity>
@@ -182,16 +183,6 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-  },
-  iconRing: {
-    position: 'absolute',
-    width: width * 0.8,
-    height: width * 0.8,
-    borderRadius: (width * 0.8) / 2,
-    borderWidth: 1,
-    borderColor: colors.primarySoft,
-    borderStyle: 'dashed',
-    opacity: 0.3,
   },
   textContainer: {
     alignItems: 'center',
