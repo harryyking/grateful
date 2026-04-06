@@ -20,8 +20,8 @@ import { Text } from '@/components/ui/Text';
 // ─────────────────────────────────────────────────────────────
 const dailyPromisesImg = require('@/assets/images/mockup-forest.png');
 const dailyRemindersImg = require('@/assets/images/notification.png');
-const widgetAccessImg = require('@/assets/images/onboarding/widget-access.png');
-const setThemesImg = require('@/assets/images/onboarding/set-themes.png');
+const widgetAccessImg = require('@/assets/images/widget.png');
+const setThemesImg = require('@/assets/images/mockup-customize.png');
 
 const { width } = Dimensions.get('window');
 const { colors, radius } = GRATEFUL_THEME.light;
@@ -43,6 +43,7 @@ const DATA = [
     id: '3',
     title: 'Widget Access',
     desc: 'Keep the word visible with beautiful home screen widgets for instant strength.',
+
     image: widgetAccessImg,
   },
   {
