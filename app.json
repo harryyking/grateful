@@ -11,6 +11,7 @@
       "bundleIdentifier": "com.harryyking.grateful",
       "supportsTablet": false,            
       "requireFullScreen": true,  
+         "userInterfaceStyle": "automatic",
       "infoPlist": {
         "CFBundleDisplayName": "Grateful",
         "ITSAppUsesNonExemptEncryption": false
