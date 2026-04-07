@@ -30,16 +30,8 @@
       [
         "voltra",
         {
-          "ios": {
-            "widgets": [
-              {
-                "id": "daily-promise",                   
-                "displayName": "Daily Promise",
-                "description": "Shows today’s promise",
-                "supportedFamilies": ["systemSmall", "systemMedium", "systemLarge"]
-              }
-            ]
-          }
+          "groupIdentifier": "com.harryyking.grateful.GratefulLiveActivity",
+          "enablePushNotifications": true
         }
       ],
       [
