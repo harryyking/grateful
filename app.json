@@ -5,13 +5,13 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "grateful",  
+    "scheme": "grateful",
     "ios": {
       "icon": "./assets/images/icon.png",
       "bundleIdentifier": "com.harryyking.grateful",
-      "supportsTablet": false,            
-      "requireFullScreen": true,  
-         "userInterfaceStyle": "automatic",
+      "supportsTablet": false,
+      "requireFullScreen": true,
+      "userInterfaceStyle": "automatic",
       "infoPlist": {
         "CFBundleDisplayName": "Grateful",
         "ITSAppUsesNonExemptEncryption": false
@@ -27,6 +27,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "voltra",
       [
         "expo-router"
       ],
@@ -42,7 +43,15 @@
       "expo-sharing",
       "expo-secure-store",
       "expo-web-browser",
-      "expo-image"
+      "expo-image",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.2"     
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

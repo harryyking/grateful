@@ -27,7 +27,7 @@ import {
   PlayfairDisplay_500Medium,
   PlayfairDisplay_600SemiBold,
 } from "@expo-google-fonts/playfair-display";
-
+import {  } from 'voltra';
 import {
   useFonts as useDomine,
   Domine_400Regular,
@@ -133,7 +133,6 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeProvider>
           <QueryClientProvider client={queryClient}>
-            <StatusBar barStyle="light-content" />
 
             <Stack
               screenOptions={{
@@ -141,6 +140,7 @@ export default function RootLayout() {
                 contentStyle: { backgroundColor: GRATEFUL_THEME.light.colors.background },
               }}
             >
+              <StatusBar barStyle="dark-content" />
               {/* Onboarding flow */}
               <Stack.Screen name="onboarding/quiz" />
               <Stack.Screen name="onboarding/features" />

@@ -144,7 +144,7 @@ export default function FeatureScreen() {
           activeOpacity={0.85}
         >
           <Text style={styles.buttonText}>
-            {currentIndex === DATA.length - 1 ? 'Begin your Journey' : 'Continue'}
+            {currentIndex === DATA.length - 1 ? '👀See app features' : 'Continue'}
           </Text>
           <MaterialIcons name="chevron-right" size={22} color="#FFF" />
         </TouchableOpacity>
@@ -224,22 +224,23 @@ const styles = StyleSheet.create({
   },
   button: {
     flexDirection: 'row',
-    paddingVertical: 20,
-    borderRadius: radius.pill,
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
     backgroundColor: colors.primary,
+    paddingHorizontal: 28,
+    paddingVertical: 18,
+    borderRadius: 30,
+    width: '100%',
+    maxWidth: 320,
+    justifyContent: 'center',
     shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
-    shadowRadius: 15,
+    shadowRadius: 12,
     elevation: 6,
   },
   buttonText: {
-    color: '#FFF',
+    color: colors.background,
     fontSize: 17,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontWeight: '700',
   },
 });

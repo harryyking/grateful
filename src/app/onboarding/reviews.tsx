@@ -106,11 +106,11 @@ export default function ReviewsScreen() {
         {/* Header Section */}
         <View style={styles.header}>
           <View style={styles.iconWrapper}>
-            <MaterialIcons name="flare" size={36} color={colors.primary} />
+            <MaterialIcons name="star" size={36} color={colors.primary} />
           </View>
-          <Text variant="h1">Impact</Text>
+          <Text variant="h1">Leave a review</Text>
           <Text style={styles.subhead}>
-            Join a community of believers finding daily grace and seeking more of God.
+            We're a small team, so a rating goes a long way 🤍
           </Text>
         </View>
 
@@ -184,7 +184,7 @@ export default function ReviewsScreen() {
             style={styles.button}
             onPress={handleFinishOnboarding}   // ← Updated here
           >
-            <Text style={styles.buttonText}>Begin Your Journey</Text>
+            <Text style={styles.buttonText}>Continue</Text>
             <MaterialIcons name="arrow-forward" size={20} color={colors.primaryForeground} />
           </TouchableOpacity>
         </View>
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 12,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   reviewButtonText: {
     color: colors.primary,
@@ -353,17 +353,23 @@ const styles = StyleSheet.create({
   },
   button: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
-    borderRadius: radius.lg,
-    gap: 10,
     backgroundColor: colors.primary,
+    paddingHorizontal: 28,
+    paddingVertical: 18,
+    borderRadius: 30,
+    width: '100%',
+    maxWidth: 320,
+    justifyContent: 'center',
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
   },
   buttonText: {
-    color: colors.primaryForeground,
-    fontSize: 15,
-    fontWeight: '800',
-    letterSpacing: 1.5,
+    color: colors.background,
+    fontSize: 17,
+    fontWeight: '700'
   },
 });

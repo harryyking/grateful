@@ -4,7 +4,7 @@ import { useProfileStore } from './ProfileStore';
 import promises from '@/data/promise'; // your local promises array
 
 // Same simple hash from your old API
-const simpleHash = (str: string): number => {
+export const simpleHash = (str: string): number => {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
