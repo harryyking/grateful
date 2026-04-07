@@ -31,7 +31,27 @@ export default function WidgetScreen() {
           <Text style={styles.previewLabel}>LIVE PREVIEW</Text>
           
           <View style={styles.previewFrame}>
-            {/* <DailyPromiseWidget /> */}
+          <View style={styles.wireframeContainer}>
+      {/* Medium/Wide Widget */}
+      <View style={[styles.ghostWidget, styles.widgetWide]}>
+        <View style={styles.ghostLine} />
+        <View style={[styles.ghostLine, { width: '60%' }]} />
+      </View>
+      
+      <View style={styles.wireframeRow}>
+        {/* Small Square Widget */}
+        <View style={[styles.ghostWidget, styles.widgetSmall]}>
+          <MaterialIcons name="favorite" size={24} color={theme.muted} style={{ opacity: 0.5 }}/>
+        </View>
+        {/* Large Square Widget */}
+        <View style={[styles.ghostWidget, styles.widgetLarge]}>
+           <View style={[styles.ghostLine, { width: '80%', marginBottom: 12 }]} />
+           <View style={[styles.ghostLine, { width: '40%' }]} />
+        </View>
+      </View>
+    </View>
+
+
           </View>
         </View>
 
@@ -94,15 +114,58 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   previewFrame: {
-    width: width * 0.82,
-    height: 170,
-    borderRadius: 24,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 10,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    paddingHorizontal: 32,
+    paddingBottom: 20,
+  },
+
+  // Wireframe Graphics 
+  wireframeContainer: {
+    width: width * 0.7,
+    alignItems: 'center',
+    marginBottom: 48,
+  },
+  ghostWidget: {
+    borderWidth: 2,
+    borderColor: theme.muted,
+    borderStyle: 'dashed',
+    borderRadius: 20,
+    backgroundColor: 'rgba(93, 85, 81, 0.1)', // Very faint muted color
+    padding: 16,
+    justifyContent: 'center',
+  },
+  widgetWide: {
+    width: '100%',
+    height: 80,
+    marginBottom: 16,
+    alignItems: 'flex-start',
+  },
+  wireframeRow: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+  },
+  widgetSmall: {
+    width: '45%',
+    aspectRatio: 1,
+    alignItems: 'center',
+  },
+  widgetLarge: {
+    width: '45%',
+    aspectRatio: 1, // Keeps it square
+    alignItems: 'flex-start',
+    justifyContent: 'flex-end',
+  },
+  ghostLine: {
+    height: 8,
+    backgroundColor: theme.muted,
+    borderRadius: 4,
+    width: '100%',
+    marginBottom: 8,
+    opacity: 0.3,
   },
 
   // Typography
