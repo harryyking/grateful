@@ -27,7 +27,21 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "voltra",
+      [
+        "voltra",
+        {
+          "ios": {
+            "widgets": [
+              {
+                "id": "daily-promise",                   
+                "displayName": "Daily Promise",
+                "description": "Shows today’s promise",
+                "supportedFamilies": ["systemSmall", "systemMedium", "systemLarge"]
+              }
+            ]
+          }
+        }
+      ],
       [
         "expo-router"
       ],
