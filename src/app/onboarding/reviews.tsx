@@ -185,7 +185,7 @@ export default function ReviewsScreen() {
             onPress={handleFinishOnboarding}   // ← Updated here
           >
             <Text style={styles.buttonText}>Continue</Text>
-            <MaterialIcons name="arrow-forward" size={20} color={colors.primaryForeground} />
+            <MaterialIcons name="arrow-forward" size={20} color={colors.background} />
           </TouchableOpacity>
         </View>
       </View>
@@ -359,7 +359,6 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     borderRadius: 30,
     width: '100%',
-    maxWidth: 320,
     justifyContent: 'center',
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 6 },

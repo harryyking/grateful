@@ -33,23 +33,23 @@ export default function WidgetScreen() {
           <View style={styles.previewFrame}>
           <View style={styles.wireframeContainer}>
       {/* Medium/Wide Widget */}
-      <View style={[styles.ghostWidget, styles.widgetWide]}>
-        <View style={styles.ghostLine} />
-        <View style={[styles.ghostLine, { width: '60%' }]} />
-      </View>
+        <View style={[styles.ghostWidget, styles.widgetWide]}>
+          <View style={styles.ghostLine} />
+          <View style={[styles.ghostLine, { width: '60%' }]} />
+        </View>
       
-      <View style={styles.wireframeRow}>
-        {/* Small Square Widget */}
-        <View style={[styles.ghostWidget, styles.widgetSmall]}>
-          <MaterialIcons name="favorite" size={24} color={theme.muted} style={{ opacity: 0.5 }}/>
-        </View>
-        {/* Large Square Widget */}
-        <View style={[styles.ghostWidget, styles.widgetLarge]}>
-           <View style={[styles.ghostLine, { width: '80%', marginBottom: 12 }]} />
-           <View style={[styles.ghostLine, { width: '40%' }]} />
+        <View style={styles.wireframeRow}>
+          {/* Small Square Widget */}
+          <View style={[styles.ghostWidget, styles.widgetSmall]}>
+            <MaterialIcons name="favorite" size={24} color={theme.muted} style={{ opacity: 0.5 }}/>
+          </View>
+          {/* Large Square Widget */}
+          <View style={[styles.ghostWidget, styles.widgetLarge]}>
+            <View style={[styles.ghostLine, { width: '80%', marginBottom: 12 }]} />
+            <View style={[styles.ghostLine, { width: '40%' }]} />
+          </View>
         </View>
       </View>
-    </View>
 
 
           </View>
@@ -98,13 +98,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
-    paddingBottom: 60,
+    paddingBottom: 8,
   },
 
   // Preview
   previewContainer: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: 16,
   },
   previewLabel: {
     fontSize: 13,

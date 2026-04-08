@@ -144,9 +144,9 @@ export default function FeatureScreen() {
           activeOpacity={0.85}
         >
           <Text style={styles.buttonText}>
-            {currentIndex === DATA.length - 1 ? '👀See app features' : 'Continue'}
+            {currentIndex === DATA.length - 1 ? '👀See Reviews' : 'Continue'}
           </Text>
-          <MaterialIcons name="chevron-right" size={22} color="#FFF" />
+          <MaterialIcons name="chevron-right" size={22} color={colors.background} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -230,7 +230,6 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     borderRadius: 30,
     width: '100%',
-    maxWidth: 320,
     justifyContent: 'center',
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 6 },
