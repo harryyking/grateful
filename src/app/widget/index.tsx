@@ -95,10 +95,10 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
-    paddingBottom: 8,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 16,
   },
 
   // Preview
@@ -114,12 +114,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   previewFrame: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
-    paddingHorizontal: 32,
-    paddingBottom: 20,
+    paddingVertical: 20,
   },
 
   // Wireframe Graphics 
@@ -129,11 +126,11 @@ const styles = StyleSheet.create({
     marginBottom: 48,
   },
   ghostWidget: {
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: theme.muted,
     borderStyle: 'dashed',
     borderRadius: 20,
-    backgroundColor: 'rgba(93, 85, 81, 0.1)', // Very faint muted color
+    backgroundColor: 'rgba(93, 85, 81, 0.06)',
     padding: 16,
     justifyContent: 'center',
   },
@@ -155,9 +152,9 @@ const styles = StyleSheet.create({
   },
   widgetLarge: {
     width: '45%',
-    aspectRatio: 1, // Keeps it square
+    aspectRatio: 1,
     alignItems: 'flex-start',
-    justifyContent: 'flex-end',
+    justifyContent: 'center', // instead of flex-end
   },
   ghostLine: {
     height: 8,
