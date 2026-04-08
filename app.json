@@ -30,7 +30,7 @@
       [
         "voltra",
         {
-          "groupIdentifier": "group.com.harryyking.grateful.GratefulLiveActivity",
+          "groupIdentifier": "group.com.harryyking.grateful",
           "enablePushNotifications": true
         }
       ],
