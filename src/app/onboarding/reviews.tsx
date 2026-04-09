@@ -1,13 +1,13 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import {
   StyleSheet,
   View,
   TouchableOpacity,
-  Dimensions,
   Animated,
   Platform,
   Linking,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -17,8 +17,6 @@ import { GRATEFUL_THEME } from '@/design/theme';
 import * as StoreReview from 'expo-store-review';
 import { useProfileStore } from '@/store/ProfileStore';
 
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.85;
 const SPACING = 16;
 
 const { colors, radius } = GRATEFUL_THEME.light;
@@ -46,6 +44,11 @@ const REVIEWS_DATA = [
 
 export default function ReviewsScreen() {
   const scrollX = useRef(new Animated.Value(0)).current;
+  const { width } = useWindowDimensions();
+
+  // Dynamic values for iPad compatibility
+  const CARD_WIDTH = Math.min(width * 0.85, 420);
+  const PADDING_HORIZONTAL = (width - CARD_WIDTH) / 2;
 
   // Get review prompt state + finish onboarding from Zustand
   const { lastReviewPrompt, setLastReviewPrompt, finishOnboarding } = useProfileStore();
@@ -76,7 +79,6 @@ export default function ReviewsScreen() {
               if (isAvailable) {
                 await StoreReview.requestReview();
               } else {
-                // Fallback: open App Store page
                 const url = Platform.select({
                   ios: "https://apps.apple.com/app/6761614902",
                   android: "https://play.google.com/store/apps/details?id=com.harryyking.grateful",
@@ -84,7 +86,6 @@ export default function ReviewsScreen() {
                 if (url) await Linking.openURL(url);
               }
 
-              // Record that we asked
               setLastReviewPrompt(now);
             } catch (error) {
               console.error('StoreReview error:', error);
@@ -96,8 +97,8 @@ export default function ReviewsScreen() {
   };
 
   const handleFinishOnboarding = () => {
-    finishOnboarding();           // ← Only flips hasCompletedOnboarding to true
-    router.push('/home');         // You can change to router.replace('/home') if you prefer
+    finishOnboarding();
+    router.push('/home');
   };
 
   return (
@@ -121,7 +122,10 @@ export default function ReviewsScreen() {
             showsHorizontalScrollIndicator={false}
             snapToInterval={CARD_WIDTH + SPACING}
             decelerationRate="fast"
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { paddingHorizontal: PADDING_HORIZONTAL },
+            ]}
             onScroll={Animated.event(
               [{ nativeEvent: { contentOffset: { x: scrollX } } }],
               { useNativeDriver: true }
@@ -143,7 +147,7 @@ export default function ReviewsScreen() {
               return (
                 <Animated.View
                   key={item.id}
-                  style={[styles.card, { transform: [{ scale }] }]}
+                  style={[styles.card, { width: CARD_WIDTH, transform: [{ scale }] }]}
                 >
                   <View style={styles.cardHeader}>
                     <View style={styles.cardHeaderInfo}>
@@ -170,7 +174,7 @@ export default function ReviewsScreen() {
 
         {/* Footer / Action Area */}
         <View style={styles.footer}>
-        <TouchableOpacity
+          <TouchableOpacity
             activeOpacity={0.7}
             style={styles.reviewButton}
             onPress={showReviewPrompt}
@@ -182,7 +186,7 @@ export default function ReviewsScreen() {
           <TouchableOpacity
             activeOpacity={0.8}
             style={styles.button}
-            onPress={handleFinishOnboarding}   // ← Updated here
+            onPress={handleFinishOnboarding}
           >
             <Text style={styles.buttonText}>Continue</Text>
             <MaterialIcons name="arrow-forward" size={20} color={colors.background} />
@@ -203,28 +207,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 40,
   },
-  // --- Ambient Glows ---
-  divineGlow: {
-    position: 'absolute',
-    top: -100,
-    right: -100,
-    width: 350,
-    height: 350,
-    borderRadius: radius.pill,
-    backgroundColor: colors.glow,
-    transform: [{ scale: 1.5 }],
-    filter: 'blur(40px)',
-  },
-  heartGlow: {
-    position: 'absolute',
-    bottom: 100,
-    left: -150,
-    width: 300,
-    height: 300,
-    borderRadius: radius.pill,
-    backgroundColor: colors.heartGlow,
-    transform: [{ scale: 1.5 }],
-  },
+
   // --- Header ---
   header: {
     alignItems: 'center',
@@ -244,14 +227,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  headline: {
-    fontSize: 34,
-    fontWeight: '800',
-    color: colors.foreground,
-    textAlign: 'center',
-    letterSpacing: -0.5,
-    marginBottom: 12,
-  },
   subhead: {
     fontSize: 16,
     color: colors.muted,
@@ -259,17 +234,18 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     paddingHorizontal: 12,
   },
+
   // --- Carousel & Cards ---
   carouselContainer: {
-    height: 300,
+    flexGrow: 1,
+    minHeight: 300,
     marginVertical: 40,
+    justifyContent: 'center',
   },
   scrollContent: {
-    paddingHorizontal: (width - CARD_WIDTH) / 2,
     gap: SPACING,
   },
   card: {
-    width: CARD_WIDTH,
     backgroundColor: colors.card,
     borderRadius: radius.xl,
     padding: 28,
@@ -284,12 +260,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
-  },
-  avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.pill,
-    marginRight: 14,
   },
   cardHeaderInfo: {
     justifyContent: 'center',
@@ -325,6 +295,7 @@ const styles = StyleSheet.create({
     gap: 4,
     marginTop: 20,
   },
+
   // --- Footer ---
   footer: {
     paddingHorizontal: 24,
@@ -342,14 +313,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: 16,
     fontWeight: '600',
-  },
-  buttonShadow: {
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 8,
-    marginBottom: 24,
   },
   button: {
     flexDirection: 'row',
@@ -369,6 +332,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: colors.background,
     fontSize: 17,
-    fontWeight: '700'
+    fontWeight: '700',
   },
 });
