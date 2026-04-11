@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
   // --- Footer ---
   footer: {
     paddingHorizontal: 24,
-    paddingBottom: 20,
+    paddingBottom: 32,
   },
   reviewButton: {
     flexDirection: 'row',
