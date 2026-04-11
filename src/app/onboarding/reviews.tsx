@@ -96,9 +96,11 @@ export default function ReviewsScreen() {
     );
   };
 
-  const handleFinishOnboarding = () => {
-    finishOnboarding();
-    router.push('/home');
+  const handleContinue = () => {
+    const showedPrompt = showReviewPrompt();
+    if (!showedPrompt) {
+      handleFinishOnboarding(); // Skip directly if not showing prompt
+    }
   };
 
   return (
@@ -174,19 +176,11 @@ export default function ReviewsScreen() {
 
         {/* Footer / Action Area */}
         <View style={styles.footer}>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            style={styles.reviewButton}
-            onPress={showReviewPrompt}
-          >
-            <MaterialIcons name="star" size={22} color={colors.primary} />
-            <Text style={styles.reviewButtonText}>Leave a Review</Text>
-          </TouchableOpacity>
 
           <TouchableOpacity
             activeOpacity={0.8}
             style={styles.button}
-            onPress={handleFinishOnboarding}
+            onPress={handleContinue}
           >
             <Text style={styles.buttonText}>Continue</Text>
             <MaterialIcons name="arrow-forward" size={20} color={colors.background} />
