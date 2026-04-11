@@ -42,9 +42,10 @@ const REVIEWS_DATA = [
   },
 ];
 
+const { width, height } = useWindowDimensions();
+
 export default function ReviewsScreen() {
   const scrollX = useRef(new Animated.Value(0)).current;
-  const { width } = useWindowDimensions();
 
   // Dynamic values for iPad compatibility
   const CARD_WIDTH = Math.min(width * 0.85, 420);
@@ -208,20 +209,20 @@ const styles = StyleSheet.create({
   contentWrapper: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingVertical: 40,
+    paddingVertical: 32,
   },
 
   // --- Header ---
   header: {
     alignItems: 'center',
     paddingHorizontal: 24,
-    marginTop: 20,
+    marginTop: 12,
   },
   iconWrapper: {
     backgroundColor: colors.surface,
-    padding: 18,
+    padding: 16,
     borderRadius: radius.xl,
-    marginBottom: 24,
+    marginBottom: 20,
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
@@ -241,8 +242,8 @@ const styles = StyleSheet.create({
   // --- Carousel & Cards ---
   carouselContainer: {
     flexGrow: 1,
-    minHeight: 300,
-    marginVertical: 40,
+    minHeight: height < 700 ? 240 : 260,
+    marginVertical: 24,
     justifyContent: 'center',
   },
   scrollContent: {
@@ -251,7 +252,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.card,
     borderRadius: radius.xl,
-    padding: 28,
+    padding: 24,
     justifyContent: 'space-between',
     shadowColor: colors.foreground,
     shadowOffset: { width: 0, height: 12 },
@@ -262,7 +263,7 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   cardHeaderInfo: {
     justifyContent: 'center',
