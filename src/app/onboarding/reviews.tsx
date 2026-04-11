@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   authorText: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     color: colors.foreground,
     marginBottom: 6,
@@ -284,12 +284,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   milestoneText: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '600',
     color: colors.foreground,
   },
   quoteText: {
-    fontSize: 17,
+    fontSize: 15.5,
     color: colors.foreground,
     lineHeight: 26,
     fontStyle: 'italic',
