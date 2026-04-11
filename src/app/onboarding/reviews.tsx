@@ -58,7 +58,7 @@ export default function ReviewsScreen() {
     const now = Date.now();
 
     if (lastReviewPrompt && now - lastReviewPrompt < THIRTY_DAYS_MS) {
-      return;
+      return false; // Not showing prompt
     }
 
     Alert.alert(
@@ -68,6 +68,7 @@ export default function ReviewsScreen() {
         {
           text: "Not Now",
           style: "cancel",
+          onPress: () => handleFinishOnboarding(), // Still continue if they say no
         },
         {
           text: "Yes, I'd Love To",
@@ -75,7 +76,6 @@ export default function ReviewsScreen() {
           onPress: async () => {
             try {
               const isAvailable = await StoreReview.isAvailableAsync();
-
               if (isAvailable) {
                 await StoreReview.requestReview();
               } else {
@@ -85,16 +85,25 @@ export default function ReviewsScreen() {
                 });
                 if (url) await Linking.openURL(url);
               }
-
               setLastReviewPrompt(now);
             } catch (error) {
               console.error('StoreReview error:', error);
+            } finally {
+              handleFinishOnboarding(); // Always continue after review attempt
             }
           },
         },
       ]
     );
+    return true;
   };
+
+
+  const handleFinishOnboarding = () => {
+    finishOnboarding();
+    router.push('/home');
+  };
+
 
   const handleContinue = () => {
     const showedPrompt = showReviewPrompt();
