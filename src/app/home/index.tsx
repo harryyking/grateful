@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     lineHeight: 48,
     textAlign: "center",
-    color: theme.foreground,
+    color: theme.surface,
   },
   referenceContainer: {
     marginTop: 16,
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     textTransform: "uppercase",
     letterSpacing: 4,
-    color: theme.foreground,
+    color: theme.surface,
     opacity: 0.4,
   },
   footer: {
