@@ -237,7 +237,7 @@ export default function ProfileScreen() {
             title="Feature Requests & Suggestions"
             onPress={() => Linking.openURL("https://insigh.to/b/grateful")}
           />
-          <SettingRow icon="star" title="Add Reviews" onPress={requestReview} />
+          {/* <SettingRow icon="star" title="Add Reviews" onPress={requestReview} /> */}
           <SettingRow
             icon="help-outline"
             title="Contact Support"

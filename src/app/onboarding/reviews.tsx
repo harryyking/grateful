@@ -4,9 +4,6 @@ import {
   View,
   TouchableOpacity,
   Animated,
-  Platform,
-  Linking,
-  Alert,
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,11 +11,9 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Text } from '@/components/ui/Text';
 import { GRATEFUL_THEME } from '@/design/theme';
-import * as StoreReview from 'expo-store-review';
 import { useProfileStore } from '@/store/ProfileStore';
 
 const SPACING = 16;
-
 const { colors, radius } = GRATEFUL_THEME.light;
 
 const REVIEWS_DATA = [
@@ -42,81 +37,24 @@ const REVIEWS_DATA = [
   },
 ];
 
-const { width, height } = useWindowDimensions();
-
 export default function ReviewsScreen() {
   const scrollX = useRef(new Animated.Value(0)).current;
+  const { width } = useWindowDimensions();
 
-  // Dynamic values for iPad compatibility
   const CARD_WIDTH = Math.min(width * 0.85, 420);
   const PADDING_HORIZONTAL = (width - CARD_WIDTH) / 2;
 
-  // Get review prompt state + finish onboarding from Zustand
-  const { lastReviewPrompt, setLastReviewPrompt, finishOnboarding } = useProfileStore();
-
-  const showReviewPrompt = () => {
-    const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
-    const now = Date.now();
-
-    if (lastReviewPrompt && now - lastReviewPrompt < THIRTY_DAYS_MS) {
-      return false; // Not showing prompt
-    }
-
-    Alert.alert(
-      "Would You Like to Leave a Review?",
-      "Your feedback helps us spread God's Word to more people. It only takes a moment.",
-      [
-        {
-          text: "Not Now",
-          style: "cancel",
-          onPress: () => handleFinishOnboarding(), // Still continue if they say no
-        },
-        {
-          text: "Yes, I'd Love To",
-          style: "default",
-          onPress: async () => {
-            try {
-              const isAvailable = await StoreReview.isAvailableAsync();
-              if (isAvailable) {
-                await StoreReview.requestReview();
-              } else {
-                const url = Platform.select({
-                  ios: "https://apps.apple.com/app/6761614902",
-                  android: "https://play.google.com/store/apps/details?id=com.harryyking.grateful",
-                });
-                if (url) await Linking.openURL(url);
-              }
-              setLastReviewPrompt(now);
-            } catch (error) {
-              console.error('StoreReview error:', error);
-            } finally {
-              handleFinishOnboarding(); // Always continue after review attempt
-            }
-          },
-        },
-      ]
-    );
-    return true;
-  };
-
+  const { finishOnboarding } = useProfileStore();
 
   const handleFinishOnboarding = () => {
     finishOnboarding();
     router.push('/home');
   };
 
-
-  const handleContinue = () => {
-    const showedPrompt = showReviewPrompt();
-    if (!showedPrompt) {
-      handleFinishOnboarding(); // Skip directly if not showing prompt
-    }
-  };
-
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.contentWrapper}>
-        {/* Header Section */}
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.iconWrapper}>
             <MaterialIcons name="star" size={36} color={colors.primary} />
@@ -127,7 +65,7 @@ export default function ReviewsScreen() {
           </Text>
         </View>
 
-        {/* Horizontal Testimonials Carousel */}
+        {/* Testimonials Carousel */}
         <View style={styles.carouselContainer}>
           <Animated.ScrollView
             horizontal
@@ -184,13 +122,12 @@ export default function ReviewsScreen() {
           </Animated.ScrollView>
         </View>
 
-        {/* Footer / Action Area */}
+        {/* Footer - Simple Continue */}
         <View style={styles.footer}>
-
           <TouchableOpacity
             activeOpacity={0.8}
             style={styles.button}
-            onPress={handleContinue}
+            onPress={handleFinishOnboarding}
           >
             <Text style={styles.buttonText}>Continue</Text>
             <MaterialIcons name="arrow-forward" size={20} color={colors.background} />
@@ -211,8 +148,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 32,
   },
-
-  // --- Header ---
   header: {
     alignItems: 'center',
     paddingHorizontal: 24,
@@ -239,10 +174,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
 
-  // --- Carousel & Cards ---
   carouselContainer: {
     flexGrow: 1,
-    minHeight: height < 700 ? 240 : 260,
+    minHeight: 260,
     marginVertical: 24,
     justifyContent: 'center',
   },
@@ -253,6 +187,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderRadius: radius.xl,
     padding: 24,
+    minHeight: 260,
     justifyContent: 'space-between',
     shadowColor: colors.foreground,
     shadowOffset: { width: 0, height: 12 },
@@ -291,7 +226,7 @@ const styles = StyleSheet.create({
   quoteText: {
     fontSize: 15.5,
     color: colors.foreground,
-    lineHeight: 26,
+    lineHeight: 24,
     fontStyle: 'italic',
   },
   starsRow: {
@@ -300,23 +235,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 
-  // --- Footer ---
   footer: {
     paddingHorizontal: 24,
     paddingBottom: 32,
-  },
-  reviewButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    marginBottom: 20,
-  },
-  reviewButtonText: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: '600',
   },
   button: {
     flexDirection: 'row',
