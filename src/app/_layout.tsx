@@ -43,6 +43,9 @@ import { ThemeProvider } from "@/services/context/ThemeContext";
 import { useShallow } from 'zustand/shallow';
 import { useProfileStore } from "@/store/ProfileStore";
 import Purchases, {LOG_LEVEL} from 'react-native-purchases'
+import { startLiveActivity } from 'voltra/client'
+
+
 
 
 SplashScreen.preventAutoHideAsync();

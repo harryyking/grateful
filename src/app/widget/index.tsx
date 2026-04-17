@@ -5,8 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Text } from '@/components/ui/Text';
 import { router } from 'expo-router';
 import { GRATEFUL_THEME } from '@/design/theme';
-
-import DailyPromiseWidget from '@/widgets/DailyPromiseWidget';   // ← Your real Voltra widget
+import { DailyPromiseWidget } from '@/widgets/DailyPromiseWidget';
 
 const theme = GRATEFUL_THEME.light.colors;
 const { width } = Dimensions.get('window');
@@ -22,6 +21,7 @@ export default function WidgetScreen() {
       [{ text: "Got it!" }]
     );
   };
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -71,14 +71,7 @@ export default function WidgetScreen() {
           </Text>
         </View>
 
-        {/* Add Button */}
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={handleAddToHomeScreen}
-        >
-          <MaterialIcons name="add-circle" size={24} color={theme.background} />
-          <Text style={styles.addButtonText}>Add to Home Screen</Text>
-        </TouchableOpacity>
+        <DailyPromiseWidget/>
 
         <Text style={styles.note}>
           Tap the widget anytime to open Grateful
