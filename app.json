@@ -32,7 +32,7 @@
         {
           "groupIdentifier": "group.com.harryyking.grateful",
           "enablePushNotifications": true,
-          "enableLiveActivities": false,
+          "targetName": "GratefulWidgets",
           "widgetBundleIdentifier": "com.harryyking.grateful.widgets",
           "widgets": [
             {
