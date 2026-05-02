@@ -314,6 +314,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginTop: 16,
+    
   },
   dot: {
     width: 6,
@@ -324,6 +325,7 @@ const styles = StyleSheet.create({
 
   // Footer
   footer: {
+    marginTop: 6,
     paddingHorizontal: 24,
   },
   button: {
