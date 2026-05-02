@@ -144,7 +144,7 @@ export function DailyPromiseWidget() {
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
   
-    await scheduleWidget('daily-promise', [
+    await scheduleWidget('daily_promise', [
       {
         date: today,
         variants: {
