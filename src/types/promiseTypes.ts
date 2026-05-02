@@ -2,97 +2,79 @@
 // CORE TYPES - ONBOARDING + PERSONALIZATION
 // ================================================
 
-export type OnboardingState = 
-  | 'overwhelmed'
-  | 'anxious'
-  | 'distant'
-  | 'inconsistent';
-
-export type PrimaryDesire = 
+export type Season =
   | 'peace'
-  | 'strength'
-  | 'direction'
-  | 'faith'
-  | 'provision';
+  | 'growth'
+  | 'hardship'
+  | 'consistency';
 
-  export type ChristianTradition = 
-  | 'catholic'
-  | 'protestant'
-  | 'orthodox'
-  | 'charismatic'
-  | 'nondenominational';
+export type PrimaryDesire =
+  | 'peaceful'
+  | 'powerful'
+  | 'grounding'
+  | 'hopeful';
 
-export type EncouragementTime = 
+export type EncouragementTime =
   | 'morning'
   | 'afternoon'
   | 'night';
 
-export type Challenge = 
+export type Focus =
   | 'anxiety'
-  | 'temptation'
-  | 'consistency'
-  | 'lost';
-
-export type FinalMotivation = string; // one word: "Peace", "Hope", "Strength", etc.
+  | 'purpose'
+  | 'relationships'
+  | 'provision'
+  | 'faith';
 
 // ================================================
 // PROMISE TYPES
 // ================================================
 
-
 export interface Promise {
-  id: string;                    
+  id: string;
   text: string;
-  personalizedTemplate: string;  
+  personalizedTemplate: string;
   reference: string;
-  challenge: Challenge;
+  focus: Focus;
   desire: PrimaryDesire;
-  currentState: OnboardingState
+  season: Season;
 }
 
 // ================================================
-// ONBOARDING ANSWERS (Exact match to your questions)
+// ONBOARDING ANSWERS — exact match to question IDs
 // ================================================
 
 export interface OnboardingAnswers {
   name: string;
-  current_state: OnboardingState;
-  desire: PrimaryDesire;                    // from "What do you need most from God"
-  struggle: Challenge[];                    // multiselect
-  christian_tradition: ChristianTradition;
-  reminder_time: EncouragementTime;         // renamed from vulnerable_time
-  final_word: FinalMotivation;              // one word motivation
+  season: Season;
+  desire: PrimaryDesire;
+  focus: Focus[];
+  reminder_time: EncouragementTime;
 }
 
 // ================================================
-// PROFILE DATA (What gets saved in Prisma)
+// PROFILE DATA
 // ================================================
 
 export interface ProfileData {
   id: string;
   userId: string;
 
-  // Basic Info
   name: string;
   avatar?: string;
-  bio?: string;
 
-  // Onboarding Data
-  currentState: OnboardingState | null;
+  season: Season | null;
   primaryDesire: PrimaryDesire | null;
-  biggestChallenge: Challenge[];          
+  focus: Focus[];
   encouragementTime: EncouragementTime | null;
-  finalMotivation: FinalMotivation | null;
 
-  // Additional fields
   pushToken?: string;
-  preferences?: Record<string, any>;       // flexible future-proof field
+  preferences?: Record<string, any>;
   widgetsUnlocked: boolean;
   streakCount: number;
   lastStreakDate?: Date;
-  notificationTime?: string;               // e.g. "08:00"
+  notificationTime?: string;
   timezone?: string;
-  totalDonated: number;
   hasCompletedOnboarding: boolean;
 
   createdAt: Date;
@@ -106,7 +88,7 @@ export interface ProfileData {
 export interface UserSettings {
   hasCompletedOnboarding: boolean;
   currentStreak: number;
-  savedPromises: string[];           
+  savedPromises: string[];
   isDarkMode: boolean;
   morningNotification: boolean;
   eveningNotification: boolean;
@@ -122,32 +104,30 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
 };
 
 // Label mappings for UI
-export const ONBOARDING_STATE_LABELS: Record<OnboardingState, string> = {
-  overwhelmed: "Overwhelmed",
-  anxious: "Anxious",
-  distant: "Disconnected from God",
-  inconsistent: "Hopeful but inconsistent",
+export const SEASON_LABELS: Record<Season, string> = {
+  peace: 'I need more peace in my life',
+  growth: 'I want to grow closer to God',
+  hardship: "I'm going through a hard season",
+  consistency: 'I want to build a daily faith habit',
 };
 
 export const PRIMARY_DESIRE_LABELS: Record<PrimaryDesire, string> = {
-  peace: "Peace",
-  strength: "Strength",
-  direction: "Direction",
-  faith: "Faith",
-  provision: "Provision"
+  peaceful: 'Peaceful and still',
+  powerful: 'Powerful and encouraging',
+  grounding: 'Grounding and steady',
+  hopeful: 'Hopeful and uplifting',
 };
 
-export const CHRISTIAN_TRADITION_LABELS: Record<ChristianTradition, string> = {
-  protestant: "Protestant",
-  charismatic: "Charismatic",
-  nondenominational: "Non-Denominational",
-  orthodox: "Orthodox",
-  catholic: "Catholic"
+export const FOCUS_LABELS: Record<Focus, string> = {
+  anxiety: 'My mind and anxiety',
+  purpose: 'My purpose and direction',
+  relationships: 'My relationships',
+  provision: 'My finances and provision',
+  faith: 'My faith and spiritual growth',
 };
 
-export const CHALLENGE_LABELS: Record<Challenge, string> = {
-  anxiety: "Anxiety / Overthinking",
-  temptation: "Temptation / Habits",
-  consistency: "Lack of consistency",
-  lost: "Feeling lost",
+export const ENCOURAGEMENT_TIME_LABELS: Record<EncouragementTime, string> = {
+  morning: 'Morning — start my day grounded',
+  afternoon: 'Afternoon — a midday reset',
+  night: 'Night — close the day with peace',
 };

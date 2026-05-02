@@ -1,224 +1,309 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity, Dimensions, Platform, Alert } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  Dimensions,
+  Platform,
+  Alert,
+  StatusBar,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Feather } from '@expo/vector-icons';
 import { Text } from '@/components/ui/Text';
 import { router } from 'expo-router';
 import { GRATEFUL_THEME } from '@/design/theme';
-import { DailyPromiseWidget } from '@/widgets/DailyPromiseWidget';
+import { DailyPromiseWidget, MediumWidget, SmallWidget } from '@/widgets/DailyPromiseWidget';
+import { VoltraWidgetPreview } from 'voltra/client';
 
 const theme = GRATEFUL_THEME.light.colors;
 const { width } = Dimensions.get('window');
 
+const STEPS = [
+  {
+    icon: 'smartphone' as const,  // ← was 'vibrate', not in Feather
+    label: 'Long-press your Home Screen',
+  },
+  {
+    icon: 'plus-circle' as const,
+    label: 'Tap the + button in the top-left corner',
+  },
+  {
+    icon: 'search' as const,
+    label: 'Search for "Grateful"',
+  },
+  {
+    icon: 'check-circle' as const,
+    label: 'Choose Daily Promise and add it',
+  },
+];
+
 export default function WidgetScreen() {
-  const handleAddToHomeScreen = () => {
-    Alert.alert(
-      "How to Add the Widget",
-      Platform.select({
-        ios: "1. Long-press an empty area on your Home Screen\n2. Tap the + button in the top-left\n3. Search for \"Grateful\"\n4. Choose \"Daily Promise\" (Medium size works best)",
-        android: "1. Long-press your Home Screen\n2. Tap Widgets\n3. Find \"Grateful\"\n4. Drag the Daily Promise widget onto your screen",
-      })!,
-      [{ text: "Got it!" }]
-    );
-  };
-
-
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        {/* Live Preview */}
-        <View style={styles.previewContainer}>
-          <Text style={styles.previewLabel}>LIVE PREVIEW</Text>
-          
-          <View style={styles.previewFrame}>
-          <View style={styles.wireframeContainer}>
-      {/* Medium/Wide Widget */}
-        <View style={[styles.ghostWidget, styles.widgetWide]}>
-          <View style={styles.ghostLine} />
-          <View style={[styles.ghostLine, { width: '60%' }]} />
-        </View>
-      
-        <View style={styles.wireframeRow}>
-          {/* Small Square Widget */}
-          <View style={[styles.ghostWidget, styles.widgetSmall]}>
-            <MaterialIcons name="favorite" size={24} color={theme.muted} style={{ opacity: 0.5 }}/>
-          </View>
-          {/* Large Square Widget */}
-          <View style={[styles.ghostWidget, styles.widgetLarge]}>
-            <View style={[styles.ghostLine, { width: '80%', marginBottom: 12 }]} />
-            <View style={[styles.ghostLine, { width: '40%' }]} />
-          </View>
-        </View>
-      </View>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <StatusBar barStyle="light-content" />
 
-
-          </View>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces
+      >
+        {/* Hero badge */}
+        <View style={styles.badge}>
+          <MaterialIcons name="auto-awesome" size={12} color={theme.primary} />
+          <Text style={styles.badgeText}>NOW AVAILABLE</Text>
         </View>
 
-        {/* Text Content */}
-        <View style={styles.textContainer}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>NOW AVAILABLE</Text>
+        <Text style={styles.title} variant='h2'>Daily Promise on{'\n'} Your Home Screen</Text>
+        <Text style={styles.subtitle}>
+          A new word of encouragement greets you every morning without opening the app.
+        </Text>
+
+        {/* ── Previews ── */}
+        <View style={styles.previewSection}>
+          <Text style={styles.sectionLabel}>LIVE PREVIEW</Text>
+
+          <View style={styles.previewRow}>
+            {/* Small */}
+            <View style={styles.previewItem}>
+              <VoltraWidgetPreview family="systemSmall" style={styles.widgetShadow}>
+                <SmallWidget />
+              </VoltraWidgetPreview>
+              <Text style={styles.previewCaption}>Small</Text>
+            </View>
+
+            {/* Medium stacked to the right */}
+            <View style={styles.previewItem}>
+              <VoltraWidgetPreview family="systemMedium" style={styles.widgetShadow}>
+                <MediumWidget />
+              </VoltraWidgetPreview>
+              <Text style={styles.previewCaption}>Medium</Text>
+            </View>
           </View>
-          
-          <Text variant="h1" style={styles.title}>
-            Daily Promise Widget
-          </Text>
-          
-          <Text style={styles.description}>
-            Add your personalized daily promise to your home screen. 
-            It updates automatically every day and brings encouragement with just a glance.
-          </Text>
         </View>
 
-        <DailyPromiseWidget/>
+        {/* ── Divider ── */}
+        <View style={styles.divider} />
+
+        {/* ── Steps ── */}
+        <View style={styles.stepsSection}>
+          <Text style={styles.sectionLabel}>HOW TO ADD IT</Text>
+
+          {STEPS.map((step, i) => (
+            <View key={i} style={styles.step}>
+              {/* Number + line */}
+              <View style={styles.stepLeft}>
+                <View style={styles.stepNumber}>
+                  <Text style={styles.stepNumberText}>{i + 1}</Text>
+                </View>
+                {i < STEPS.length - 1 && <View style={styles.stepLine} />}
+              </View>
+
+              {/* Content */}
+              <View style={styles.stepContent}>
+                <Feather name={step.icon} size={16} color={theme.primary} style={{ marginBottom: 4 }} />
+                <Text style={styles.stepLabel}>{step.label}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {/* ── CTA ── */}
+        <DailyPromiseWidget />
 
         <Text style={styles.note}>
           Tap the widget anytime to open Grateful
         </Text>
-      </View>
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: theme.background,
   },
-  content: {
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(234, 217, 215, 0.15)',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(234, 217, 215, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.foreground,
+  },
+
+  // Scroll
+  scroll: {
     flex: 1,
+  },
+  scrollContent: {
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 16,
+    paddingTop: 32,
   },
 
-  // Preview
-  previewContainer: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  previewLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 1.5,
-    color: theme.primary,
-    marginBottom: 12,
-  },
-  previewFrame: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-
-  // Wireframe Graphics 
-  wireframeContainer: {
-    width: width * 0.7,
-    alignItems: 'center',
-    marginBottom: 48,
-  },
-  ghostWidget: {
-    borderWidth: 1.5,
-    borderColor: theme.muted,
-    borderStyle: 'dashed',
-    borderRadius: 20,
-    backgroundColor: 'rgba(93, 85, 81, 0.06)',
-    padding: 16,
-    justifyContent: 'center',
-  },
-  widgetWide: {
-    width: '100%',
-    height: 80,
-    marginBottom: 16,
-    alignItems: 'flex-start',
-  },
-  wireframeRow: {
-    flexDirection: 'row',
-    width: '100%',
-    justifyContent: 'space-between',
-  },
-  widgetSmall: {
-    width: '45%',
-    aspectRatio: 1,
-    alignItems: 'center',
-  },
-  widgetLarge: {
-    width: '45%',
-    aspectRatio: 1,
-    alignItems: 'flex-start',
-    justifyContent: 'center', // instead of flex-end
-  },
-  ghostLine: {
-    height: 8,
-    backgroundColor: theme.muted,
-    borderRadius: 4,
-    width: '100%',
-    marginBottom: 8,
-    opacity: 0.3,
-  },
-
-  // Typography
-  textContainer: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
+  // Badge
   badge: {
-    backgroundColor: 'rgba(251, 231, 178, 0.15)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(244, 183, 64, 0.12)',
     paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: 999,
-    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(244, 183, 64, 0.25)',
+    marginBottom: 20,
   },
   badgeText: {
     color: theme.primary,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.5,
   },
+
+  // Hero text
   title: {
+    fontSize: 30,
+    fontWeight: '700',
     color: theme.foreground,
-    marginBottom: 12,
     textAlign: 'center',
+    lineHeight: 38,
+    marginBottom: 14,
   },
-  description: {
-    fontSize: 16,
-    lineHeight: 24,
+  subtitle: {
+    fontSize: 15,
+    lineHeight: 23,
     color: theme.foreground,
-    opacity: 0.8,
+    opacity: 0.6,
     textAlign: 'center',
     maxWidth: 300,
+    marginBottom: 36,
   },
 
-  // Button
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.primary,
-    paddingHorizontal: 28,
-    paddingVertical: 18,
-    borderRadius: 30,
+  // Preview
+  previewSection: {
     width: '100%',
-    maxWidth: 320,
-    justifyContent: 'center',
-    shadowColor: theme.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 6,
+    alignItems: 'center',
+    marginBottom: 36,
   },
-  addButtonText: {
-    color: theme.background,
-    fontSize: 17,
+  sectionLabel: {
+    fontSize: 11,
     fontWeight: '700',
-    marginLeft: 10,
+    letterSpacing: 1.8,
+    color: theme.primary,
+    marginBottom: 20,
+    opacity: 0.8,
   },
-
-  note: {
-    marginTop: 24,
-    fontSize: 13,
+  previewRow: {
+    width: '100%',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 20,
+  },
+  previewItem: {
+    alignItems: 'center',
+    gap: 10,
+  },
+  widgetShadow: {
+    borderRadius: 22,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  previewCaption: {
+    fontSize: 12,
     color: theme.foreground,
     opacity: 0.4,
+    fontWeight: '500',
+    letterSpacing: 0.5,
+  },
+
+  // Divider
+  divider: {
+    width: '100%',
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(234, 217, 215, 0.15)',
+    marginBottom: 36,
+  },
+
+  // Steps
+  stepsSection: {
+    width: '100%',
+    marginBottom: 40,
+  },
+  step: {
+    flexDirection: 'row',
+    gap: 16,
+    minHeight: 72,
+  },
+  stepLeft: {
+    alignItems: 'center',
+    width: 32,
+  },
+  stepNumber: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(244, 183, 64, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(244, 183, 64, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepNumberText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: theme.primary,
+  },
+  stepLine: {
+    flex: 1,
+    width: 1,
+    backgroundColor: 'rgba(244, 183, 64, 0.2)',
+    marginTop: 6,
+    marginBottom: 0,
+  },
+  stepContent: {
+    flex: 1,
+    paddingTop: 4,
+    paddingBottom: 24,
+  },
+  stepLabel: {
+    fontSize: 15,
+    color: theme.foreground,
+    lineHeight: 22,
+    opacity: 0.85,
+  },
+
+  // Footer
+  note: {
+    marginTop: 20,
+    fontSize: 13,
+    color: theme.foreground,
+    opacity: 0.35,
     textAlign: 'center',
   },
 });

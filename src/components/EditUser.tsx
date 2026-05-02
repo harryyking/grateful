@@ -11,7 +11,6 @@ import {
 import { Text } from '@/components/ui/Text';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { authClient } from '@/lib/authClient';
 import { queryClient } from '@/lib/QueryClient';
 import { useProfileStore } from '@/store/ProfileStore';
 

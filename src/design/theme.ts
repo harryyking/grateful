@@ -5,7 +5,7 @@ export const GRATEFUL_THEME = {
       background: '#443734',        // warm ivory
       surface: '#FFFFFF',
       surfaceLow: '#F6F3EC',
-      card: "#534440",
+      card: "#5C4842",
       
       foreground: '#eaded7',        // softer than pure black
       onBackground: '#4A3B28',

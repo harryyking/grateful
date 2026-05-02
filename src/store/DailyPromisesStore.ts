@@ -1,9 +1,9 @@
-// src/store/dailyPromisesStore.ts (or just a hook)
-import { create } from 'zustand';
+// src/store/DailyPromisesStore.ts
 import { useProfileStore } from './ProfileStore';
-import promises from '@/data/promise'; // your local promises array
+import promises from '@/data/promise';
+import type { Promise, PrimaryDesire, Focus } from '@/types/promiseTypes';
 
-// Same simple hash from your old API
+// ── Deterministic shuffle ──────────────────────────────────────────────────
 export const simpleHash = (str: string): number => {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -14,82 +14,103 @@ export const simpleHash = (str: string): number => {
   return Math.abs(hash);
 };
 
-interface DailyPromise {
-  id: string;
-  reference: string;
-  finalText: string;
-  rawTemplate: string;
-  desire: string;
-  challenge: string;
-  currentState?: string;
-}
+// ── Scoring: how relevant is a promise to this user's profile ─────────────
+const scorePromise = (
+  promise: (typeof promises)[number],
+  desire: PrimaryDesire | null,
+  focus: Focus[]
+): number => {
+  let score = 0;
+  if (desire && promise.desire === desire) score += 3;
+  if (focus.length > 0 && focus.includes(promise.focus as Focus)) score += 2;
+  return score;
+};
 
+// ── Shared builder ─────────────────────────────────────────────────────────
+const buildDailyPromises = (
+  name: string,
+  desire: PrimaryDesire | null,
+  focus: Focus[],
+  count = 4
+) => {
+  const today = new Date().toDateString();
+  const seed = today + 'local-user';
+
+  // 1. Score every promise against the user's profile
+  const scored = promises.map((p) => ({
+    promise: p,
+    score: scorePromise(p, desire, focus),
+  }));
+
+  // 2. Separate into personalised pool (score > 0) and fallback pool
+  const personalised = scored.filter((s) => s.score > 0);
+  const fallback = scored.filter((s) => s.score === 0);
+
+  // 3. Deterministic shuffle within each pool separately
+  interface ScoredPromise {
+    promise: (typeof promises)[number];
+    score: number;
+  }
+
+  const shuffle = (arr: ScoredPromise[]) =>
+    [...arr].sort((a, b) => {
+      const hashA = simpleHash(seed + a.promise.id);
+      const hashB = simpleHash(seed + b.promise.id);
+      // Weight by score so higher-relevance promises rise to the top
+      return hashA / (a.score + 1) - hashB / (b.score + 1);
+    });
+
+  const shuffledPersonalised = shuffle(personalised);
+  const shuffledFallback = shuffle(fallback);
+
+  // 4. Fill up to `count` — personalised first, fallback to pad
+  const picked = [...shuffledPersonalised, ...shuffledFallback]
+    .slice(0, count)
+    .map(({ promise: p }) => ({
+      id: p.id,
+      text: p.text,
+      personalizedTemplate: p.personalizedTemplate,
+      reference: p.reference,
+      focus: p.focus as Focus,
+      desire: p.desire as PrimaryDesire,
+      season: p.season,
+      // Computed display fields
+      finalText: p.personalizedTemplate.replace('{name}', name || 'Beloved'),
+    }));
+
+  return picked;
+};
+
+// ── React hook (use inside components) ────────────────────────────────────
 export const useDailyPromises = () => {
-  const profile = useProfileStore()
+  const { name, primaryDesire, focus, hasCompletedOnboarding } = useProfileStore();
 
   const today = new Date().toDateString();
-  const userId = 'local-user'; // or get from Better Auth session if you want
-
-  // Deterministic shuffle (same as your old API)
-  const seed = today + userId;
-  const shuffled = [...promises].sort((a, b) => {
-    const hashA = simpleHash(seed + a.id);
-    const hashB = simpleHash(seed + b.id);
-    return hashA - hashB;
-  });
-
-  const dailyPromises: DailyPromise[] = shuffled.slice(0, 4).map((p) => ({
-    id: p.id,
-    reference: p.reference,
-    finalText: p.personalizedTemplate.replace('{name}', profile.name || 'Beloved'),
-    rawTemplate: p.personalizedTemplate,
-    desire: p.desire,
-    challenge: p.challenge,
-    currentState: p.currentState,
-  }));
+  const dailyPromises = buildDailyPromises(name, primaryDesire, focus, 4);
 
   return {
     date: today,
-    userName: profile.name || 'Beloved',
+    userName: name || 'Beloved',
     promises: dailyPromises,
     count: dailyPromises.length,
-    isReady: profile.hasCompletedOnboarding,
+    isReady: hasCompletedOnboarding,
   };
 };
 
-
-
+// ── Plain function (use outside components e.g. widgets, background tasks) ─
 export const getTodaysDailyPromises = () => {
-  const profile = useProfileStore.getState();   // ← Use .getState() instead of hook
+  const { name, primaryDesire, focus, hasCompletedOnboarding } =
+    useProfileStore.getState();
 
-  if (!profile.hasCompletedOnboarding) {
-    return { userName: '', promises: [], isReady: false };
+  if (!hasCompletedOnboarding) {
+    return { userName: 'Beloved', promises: [], isReady: false };
   }
 
-  const today = new Date().toDateString();
-  const userId = 'local-user';
-
-  const seed = today + userId;
-
-  const shuffled = [...promises].sort((a, b) => {
-    const hashA = simpleHash(seed + a.id);
-    const hashB = simpleHash(seed + b.id);
-    return hashA - hashB;
-  });
-
-  const dailyPromises: DailyPromise[] = shuffled.slice(0, 4).map((p) => ({
-    id: p.id,
-    reference: p.reference,
-    finalText: p.personalizedTemplate.replace('{name}', profile.name || 'Beloved'),
-    rawTemplate: p.personalizedTemplate,
-    desire: p.desire,
-    challenge: p.challenge,
-    currentState: p.currentState,
-  }));
+  const dailyPromises = buildDailyPromises(name, primaryDesire, focus, 4);
 
   return {
-    date: today,
-    userName: profile.name || 'Beloved',
+    date: new Date().toDateString(),
+    userName: name || 'Beloved',
     promises: dailyPromises,
     count: dailyPromises.length,
     isReady: true,

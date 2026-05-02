@@ -27,7 +27,6 @@ import { StreakModal } from "@/components/StreakWidget";
 import { useTheme } from "@/services/context/ThemeContext";
 import { ImageBackground } from "expo-image";
 import StreakGlass from "@/components/StreakGlass";
-import { useStreak } from "@/hooks/useStreak";
 import { HeartAnimation } from "@/components/HeartAnimation";
 import * as Notifications from 'expo-notifications';
 import Purchases from 'react-native-purchases'
@@ -83,7 +82,6 @@ export default function App() {
 
   const { atmosphere } = useTheme();
   const streakCount = useProfileStore((state) => state.streakCount);
-  const currentState = useProfileStore((state) => state.currentState); // "Growing", "Faithful", etc.
   const tapStreak = useProfileStore((state) => state.tapStreak);
 
   const { promises, userName, isReady } = useDailyPromises();

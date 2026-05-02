@@ -19,7 +19,7 @@ export function useOnboardingStatus() {
       hasCompletedOnboarding: state.hasCompletedOnboarding,
       hasHydrated: state.hasHydrated,
       name: state.name,
-      currentState: state.currentState,
+      
       // add any other fields you want to expose here
     })
   );

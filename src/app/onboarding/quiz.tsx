@@ -21,7 +21,7 @@ import { Text } from "@/components/ui/Text";
 
 import Splash from "@/components/Splash";
 import { GRATEFUL_THEME } from "@/design/theme";
-import { OnboardingAnswers } from "@/types/promiseTypes";
+import { EncouragementTime, Focus, OnboardingAnswers, PrimaryDesire, Season } from "@/types/promiseTypes";
 import { useProfileStore } from "@/store/ProfileStore";
 
 const { width } = Dimensions.get("window");
@@ -54,84 +54,62 @@ type Answers = Record<string, AnswerValue>;
 export const ONBOARDING_QUESTIONS: Question[] = [
   {
     id: "name",
-    text: "What should we call you?",
-    subtext: "This makes your daily word feel personal.",
+    text: "What's your name?",
+    subtext: "Your daily promises will speak directly to you.",
     type: "text",
-    placeholder: "Your name",
+    placeholder: "Enter your name",
   },
 
   {
-    id: "current_state",
-    text: "Right now, I feel...",
-    subtext: "Be honest. This helps us meet you where you are.",
+    id: "season",
+    text: "What brought you here today?",
+    subtext: "There's no wrong answer. We'll meet you right here.",
     type: "radio",
     options: [
-      { label: "Overwhelmed", value: "overwhelmed" },
-      { label: "Anxious", value: "anxious" },
-      { label: "Disconnected from God", value: "distant" },
-      { label: "Hopeful but inconsistent", value: "inconsistent" },
+      { label: "🕊  I need more peace in my life", value: "peace" },
+      { label: "🙏  I want to grow closer to God", value: "growth" },
+      { label: "⚡️  I'm going through a hard season", value: "hardship" },
+      { label: "🌱  I want to build a daily faith habit", value: "consistency" },
     ],
   },
 
   {
     id: "desire",
-    text: "What do you need most from God right now?",
-    subtext: "We'll shape your daily messages around this.",
+    text: "What do you want your daily moments with God to feel like?",
+    subtext: "We'll shape every promise around this.",
     type: "radio",
     options: [
-      { label: "Peace", value: "peace" },
-      { label: "Strength", value: "strength" },
-      { label: "Direction", value: "direction" },
-      { label: "Faith", value: "faith" },
-      { label: "Provision", value: "provision" },
+      { label: "✨  Peaceful and still", value: "peaceful" },
+      { label: "💪  Powerful and encouraging", value: "powerful" },
+      { label: "🧭  Grounding and steady", value: "grounding" },
+      { label: "🌅  Hopeful and uplifting", value: "hopeful" },
     ],
   },
 
   {
-    id: "struggle",
-    text: "What are you currently struggling with?",
-    subtext: "Select all that apply.",
+    id: "focus",
+    text: "What areas would you like God to speak into?",
+    subtext: "Choose all that resonate with you.",
     type: "multiselect",
     options: [
-      { label: "Anxiety / Overthinking", value: "anxiety" },
-      { label: "Temptation / Habits", value: "temptation" },
-      { label: "Lack of consistency", value: "consistency" },
-      { label: "Feeling lost", value: "lost" },
-    ],
-  },
-
-  {
-    id: "christian_tradition",
-    text: "What is your Christian tradition?",
-    subtext: "This helps us serve you better with relevant teachings.",
-    type: "radio",
-    options: [
-      { label: "Catholic", value: "catholic" },
-      { label: "Protestant", value: "protestant" },
-      { label: "Orthodox", value: "orthodox" },
-      { label: "Charismatic / Pentecostal", value: "charismatic" },
-      { label: "Non-denominational", value: "nondenominational" },
+      { label: "My mind and anxiety", value: "anxiety" },
+      { label: "My purpose and direction", value: "purpose" },
+      { label: "My relationships", value: "relationships" },
+      { label: "My finances and provision", value: "provision" },
+      { label: "My faith and spiritual growth", value: "faith" },
     ],
   },
 
   {
     id: "reminder_time",
-    text: "When should we show up for you?",
-    subtext: "We'll send your daily word at this time.",
+    text: "When do you want your daily promise?",
+    subtext: "We'll deliver a word just for you at this time.",
     type: "radio",
     options: [
-      { label: "Morning", value: "morning" },
-      { label: "Afternoon", value: "afternoon" },
-      { label: "Night", value: "night" },
+      { label: "🌄  Morning — start my day grounded", value: "morning" },
+      { label: "☀️  Afternoon — a midday reset", value: "afternoon" },
+      { label: "🌙  Night — close the day with peace", value: "night" },
     ],
-  },
-
-  {
-    id: "final_word",
-    text: "One word that describes what you need most right now?",
-    subtext: "We'll remember this.",
-    type: "text",
-    placeholder: "Peace • Hope • Strength",
   },
 ];
 
@@ -193,32 +171,36 @@ const completeOnboarding = useProfileStore((state) => state.completeOnboarding);
   const handleNext = async () => {
     if (!isStepValid()) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-    // === Always send latest text input for text questions ===
-    const answersToSend: Answers = currentQuestion.type === "text"
-      ? { ...answers, [currentQuestion.id]: textInput.trim() }
-      : answers;
-
-    if (currentQuestion.type === "text") {
+  
+    // Build the answers object with the latest text input if needed
+    const answersToSend: Answers =
+      currentQuestion.type === 'text'
+        ? { ...answers, [currentQuestion.id]: textInput.trim() }
+        : answers;
+  
+    if (currentQuestion.type === 'text') {
       setAnswers(answersToSend);
+      setTextInput('');
     }
-
+  
     if (index < ONBOARDING_QUESTIONS.length - 1) {
       setIndex((prev) => prev + 1);
-      if (currentQuestion.type === "text") setTextInput("");
     } else {
-      // === FINAL STEP – now fully local ===
       setIsLoading(true);
-
       try {
-        // ← THIS IS THE ONLY CHANGE
-        completeOnboarding(answersToSend as unknown as OnboardingAnswers);
-
+        completeOnboarding({
+          name: String(answersToSend.name ?? 'Beloved'),
+          season: answersToSend.season as Season,
+          desire: answersToSend.desire as PrimaryDesire,
+          focus: (answersToSend.focus as string[] ?? []) as Focus[],
+          reminder_time: (answersToSend.reminder_time ?? 'morning') as EncouragementTime,
+        });
+  
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        router.replace("/onboarding/features");
+        router.replace('/onboarding/features');
       } catch (error) {
-        console.error("Onboarding save failed:", error);
-        alert("Something went wrong. Please try again.");
+        console.error('Onboarding save failed:', error);
+        alert('Something went wrong. Please try again.');
       } finally {
         setIsLoading(false);
       }
@@ -416,13 +398,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 22,        // was 20
     paddingHorizontal: 24,
     borderRadius: 20,
     backgroundColor: theme.card,
+    borderWidth: 1,             // add subtle border always
+    borderColor: 'transparent',
   },
   optionSelected: {
-    backgroundColor: theme.primarySoft,
+    backgroundColor: 'rgba(244, 183, 64, 0.12)',   // was primarySoft — too heavy
     borderColor: theme.primary,
   },
   optionText: {
@@ -430,17 +414,18 @@ const styles = StyleSheet.create({
     color: theme.foreground,
     flex: 1,
     paddingRight: 10,
+    lineHeight: 22,
   },
   optionTextSelected: {
-    fontWeight: "600",
-    color: theme.onBackground,
+    fontWeight: '600',
+    color: theme.foreground,   // was onBackground — stays cream, not dark
   },
   footer: {
     paddingVertical: 20,
     paddingBottom: Platform.OS === 'ios' ? 10 : 20,
   },
   continueButton: {
-    height: 60,
+    height: 64,
     backgroundColor: theme.primary,
     borderRadius: 30,
     justifyContent: 'center',

@@ -43,9 +43,6 @@ import { ThemeProvider } from "@/services/context/ThemeContext";
 import { useShallow } from 'zustand/shallow';
 import { useProfileStore } from "@/store/ProfileStore";
 import Purchases, {LOG_LEVEL} from 'react-native-purchases'
-import { startLiveActivity } from 'voltra/client'
-
-
 
 
 SplashScreen.preventAutoHideAsync();
@@ -136,6 +133,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeProvider>
           <QueryClientProvider client={queryClient}>
+            <StatusBar barStyle="dark-content" />
 
             <Stack
               screenOptions={{
@@ -143,7 +141,6 @@ export default function RootLayout() {
                 contentStyle: { backgroundColor: GRATEFUL_THEME.light.colors.background },
               }}
             >
-              <StatusBar barStyle="dark-content" />
               {/* Onboarding flow */}
               <Stack.Screen name="onboarding/quiz" />
               <Stack.Screen name="onboarding/features" />

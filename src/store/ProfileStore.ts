@@ -1,30 +1,30 @@
-// src/store/profileStore.ts
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { mmkvStorage } from 'zustand-mmkv-storage';
 
-import type { OnboardingAnswers } from '@/types/promiseTypes';
+import type { OnboardingAnswers, Season, PrimaryDesire, Focus, EncouragementTime } from '@/types/promiseTypes';
 
 interface ProfileState {
   name: string;
   createdAt: string;
-  currentState: string;
-  primaryDesire: string;
-  biggestChallenge: string[];
-  encouragementTime: string;
-  finalMotivation: string;
+  season: Season | null;
+  primaryDesire: PrimaryDesire | null;
+  focus: Focus[];
+  encouragementTime: EncouragementTime;
   hasCompletedOnboarding: boolean;
 
   streakCount: number;
   lastStreakDate: string | null;
+  currentStatus: string;
   widgetsUnlocked: boolean;
 
   hasHydrated: boolean;
   lastReviewPrompt: number;
+
   // Actions
   setLastReviewPrompt: (timestamp: number) => void;
-  finishOnboarding: () => void;  
   completeOnboarding: (answers: OnboardingAnswers) => void;
+  finishOnboarding: () => void;
   updateName: (name: string) => void;
   tapStreak: () => { streakCount: number; status: string };
   deleteAccount: () => void;
@@ -32,43 +32,42 @@ interface ProfileState {
   setHasHydrated: (value: boolean) => void;
 }
 
+const DEFAULT_STATE = {
+  name: 'Beloved',
+  createdAt: new Date().toISOString(),
+  season: null as Season | null,
+  primaryDesire: null as PrimaryDesire | null,
+  focus: [] as Focus[],
+  encouragementTime: 'morning' as EncouragementTime,
+  hasCompletedOnboarding: false,
+  streakCount: 0,
+  lastStreakDate: null as string | null,
+  currentStatus: 'Growing',
+  widgetsUnlocked: false,
+  lastReviewPrompt: 0,
+};
+
 export const useProfileStore = create<ProfileState>()(
   persist(
     (set, get) => ({
-      name: 'Beloved',
-      createdAt: new Date().toISOString(),
-      currentState: 'Growing',
-      primaryDesire: '',
-      biggestChallenge: [],
-      encouragementTime: 'morning',
-      finalMotivation: '',
-      hasCompletedOnboarding: false,
-
-      streakCount: 0,
-      lastStreakDate: null,
-      widgetsUnlocked: false,
-
+      ...DEFAULT_STATE,
       hasHydrated: false,
-      lastReviewPrompt: 0,
-      setLastReviewPrompt: (timestamp: number) => set({ lastReviewPrompt: timestamp }),
+
+      setLastReviewPrompt: (timestamp) => set({ lastReviewPrompt: timestamp }),
 
       completeOnboarding: (answers: OnboardingAnswers) => {
-        set((state) => ({
-          name: answers.name.trim(),
-          currentState: answers.current_state || state.currentState,
+        set({
+          name: answers.name.trim() || 'Beloved',
+          season: answers.season,
           primaryDesire: answers.desire,
-          biggestChallenge: answers.struggle || [],
+          focus: answers.focus,
           encouragementTime: answers.reminder_time ?? 'morning',
-          finalMotivation: answers.final_word ?? '',
-        }));
+        });
       },
 
+      finishOnboarding: () => set({ hasCompletedOnboarding: true }),
 
-      finishOnboarding: () => {
-        set({ hasCompletedOnboarding: true });
-      },
-
-      updateName: (newName: string) => {
+      updateName: (newName) => {
         const trimmed = newName?.trim();
         if (!trimmed) return;
         set({ name: trimmed.slice(0, 100) });
@@ -85,10 +84,10 @@ export const useProfileStore = create<ProfileState>()(
 
         if (lastDate !== today) {
           const lastTap = state.lastStreakDate ? new Date(state.lastStreakDate) : new Date(0);
-          const daysSinceLastTap = Math.ceil(
+          const daysSince = Math.ceil(
             Math.abs(new Date().getTime() - lastTap.getTime()) / (1000 * 60 * 60 * 24)
           );
-          newStreak = daysSinceLastTap > 2 ? 1 : state.streakCount + 1;
+          newStreak = daysSince > 2 ? 1 : state.streakCount + 1;
         }
 
         let newStatus = 'Growing';
@@ -101,45 +100,14 @@ export const useProfileStore = create<ProfileState>()(
         set({
           streakCount: newStreak,
           lastStreakDate: new Date().toISOString(),
-          currentState: newStatus,
         });
 
         return { streakCount: newStreak, status: newStatus };
       },
 
-      deleteAccount: () => {
-        set({
-          name: 'Beloved',
-          createdAt: new Date().toISOString(),
-          currentState: 'Growing',
-          primaryDesire: '',
-          biggestChallenge: [],
-          encouragementTime: 'morning',
-          finalMotivation: '',
-          hasCompletedOnboarding: false,
-          streakCount: 0,
-          lastStreakDate: null,
-          widgetsUnlocked: false,
-        });
-      },
-
-      resetProfile: () => {
-        set({
-          name: 'Beloved',
-          createdAt: new Date().toISOString(),
-          currentState: 'Growing',
-          primaryDesire: '',
-          biggestChallenge: [],
-          encouragementTime: 'morning',
-          finalMotivation: '',
-          hasCompletedOnboarding: false,
-          streakCount: 0,
-          lastStreakDate: null,
-          widgetsUnlocked: false,
-        });
-      },
-
-      setHasHydrated: (value: boolean) => set({ hasHydrated: value }),
+      deleteAccount: () => set({ ...DEFAULT_STATE }),
+      resetProfile: () => set({ ...DEFAULT_STATE }),
+      setHasHydrated: (value) => set({ hasHydrated: value }),
     }),
 
     {
@@ -149,32 +117,27 @@ export const useProfileStore = create<ProfileState>()(
       partialize: (state) => ({
         name: state.name,
         createdAt: state.createdAt,
-        currentState: state.currentState,
+        season: state.season,
         primaryDesire: state.primaryDesire,
-        biggestChallenge: state.biggestChallenge,
+        focus: state.focus,
         encouragementTime: state.encouragementTime,
-        finalMotivation: state.finalMotivation,
         hasCompletedOnboarding: state.hasCompletedOnboarding,
         streakCount: state.streakCount,
         lastStreakDate: state.lastStreakDate,
+        currentStatus: state.currentStatus,
         widgetsUnlocked: state.widgetsUnlocked,
         lastReviewPrompt: state.lastReviewPrompt,
       }),
 
-      version: 2,
+      version: 3, // bump because shape changed
 
-      // Recommended safest pattern for onRehydrateStorage
       onRehydrateStorage: () => (state, error) => {
         if (error) {
           console.error('Failed to rehydrate profile store:', error);
           return;
         }
-
         if (state) {
-          // This is the most reliable way in Zustand v5+
-          queueMicrotask(() => {
-            state.setHasHydrated(true);
-          });
+          queueMicrotask(() => state.setHasHydrated(true));
         }
       },
     }

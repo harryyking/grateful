@@ -5,6 +5,7 @@ import {
   FlatList,
   TouchableOpacity,
   Dimensions,
+  StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -132,6 +133,7 @@ export default function AtmosphereScreen() {
         activeOpacity={0.7}
         style={styles.cardContainer}
       >
+        <StatusBar barStyle="light-content" />
         <View style={[styles.cardWrapper, isSelected && styles.cardSelected]}>
           <View
             style={[styles.atmosphereCard, { backgroundColor: item.color }]}
