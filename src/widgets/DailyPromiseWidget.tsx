@@ -3,7 +3,7 @@ import React from 'react';
 import { Voltra } from 'voltra';
 import promises from '@/data/promise';
 import { simpleHash } from '@/store/DailyPromisesStore';
-import { scheduleWidget, updateWidget, VoltraWidgetPreview } from 'voltra/client';
+import { scheduleWidget, VoltraWidgetPreview } from 'voltra/client';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { GRATEFUL_THEME } from '@/design/theme';
 import { Text } from '@/components/ui/Text';
@@ -12,10 +12,8 @@ import { useProfileStore } from '@/store/ProfileStore';
 
 const theme = GRATEFUL_THEME.light.colors;
 
-// ── Plain function — safe to call outside React ────────────────────────────
 const getTodaysPromise = () => {
-  const profile = useProfileStore.getState(); // .getState() not hook
-
+  const profile = useProfileStore.getState();
   const today = new Date().toDateString();
   const seed = today + 'local-user';
   const shuffled = [...promises].sort((a, b) =>
@@ -28,7 +26,6 @@ const getTodaysPromise = () => {
   };
 };
 
-// Small: ~155x155pt
 export const SmallWidget = () => {
   const { finalText, reference } = getTodaysPromise();
   return (
@@ -47,7 +44,7 @@ export const SmallWidget = () => {
           fontWeight: '700',
           color: '#3C2A20',
           marginBottom: 8,
-          fontFamily: 'Baskerville', // ✅ iOS system font
+          fontFamily: 'DMSans-Bold', // ← PostScript name not filename
         }}
       >
         TODAY'S PROMISE
@@ -55,12 +52,12 @@ export const SmallWidget = () => {
 
       <Voltra.Text
         style={{
-          fontSize: 13,
+          fontSize: 14,
           fontWeight: '400',
           color: '#3C2A20',
           textAlign: 'center',
           marginBottom: 8,
-          fontFamily: 'Georgia', // ✅ iOS system font
+          fontFamily: 'Domine-Regular', // ← PostScript name not filename
         }}
       >
         {finalText}
@@ -71,7 +68,7 @@ export const SmallWidget = () => {
           fontSize: 10,
           fontWeight: '600',
           color: '#3C2A20',
-          fontFamily: 'Baskerville', // ✅ iOS system font
+          fontFamily: 'DMSans-SemiBold', // ← PostScript name not filename
         }}
       >
         {reference}
@@ -80,7 +77,6 @@ export const SmallWidget = () => {
   );
 };
 
-// Medium: ~329x155pt
 export const MediumWidget = () => {
   const { finalText, reference } = getTodaysPromise();
   return (
@@ -99,7 +95,7 @@ export const MediumWidget = () => {
               fontWeight: '700',
               color: '#3C2A20',
               marginBottom: 10,
-              fontFamily: 'Baskerville', // ✅ iOS system font
+              fontFamily: 'DMSans-Bold', // ← PostScript name
             }}
           >
             TODAY'S PROMISE
@@ -107,10 +103,10 @@ export const MediumWidget = () => {
 
           <Voltra.Text
             style={{
-              fontSize: 14,
+              fontSize: 16,
               fontWeight: '400',
               color: '#3C2A20',
-              fontFamily: 'Georgia', // ✅ iOS system font
+              fontFamily: 'Domine-Regular', // ← PostScript name
             }}
           >
             {finalText}
@@ -122,7 +118,7 @@ export const MediumWidget = () => {
             fontSize: 11,
             fontWeight: '600',
             color: '#3C2A20',
-            fontFamily: 'Baskerville', // ✅ iOS system font
+            fontFamily: 'DMSans-SemiBold', // ← PostScript name
           }}
         >
           {reference}
@@ -138,12 +134,11 @@ export function WidgetContent() {
 
 export function DailyPromiseWidget() {
   const handleAddToHomeScreen = async () => {
-    // Schedule today AND tomorrow so the widget never goes stale overnight
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
-  
+
     await scheduleWidget('daily_promise', [
       {
         date: today,
@@ -151,6 +146,7 @@ export function DailyPromiseWidget() {
           systemSmall: <SmallWidget />,
           systemMedium: <MediumWidget />,
         },
+        deepLinkUrl: 'grateful://home',
       },
       {
         date: tomorrow,
@@ -158,6 +154,7 @@ export function DailyPromiseWidget() {
           systemSmall: <SmallWidget />,
           systemMedium: <MediumWidget />,
         },
+        deepLinkUrl: 'grateful://home',
       },
     ]);
   };

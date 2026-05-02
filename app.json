@@ -28,6 +28,15 @@
     },
     "plugins": [
       [
+        "expo-font", 
+        {
+          "fonts": [
+            "./assets/fonts/DM-Sans.ttf",
+            "./assets/fonts/Domine.ttf"
+          ]
+        }
+      ],
+      [
         "voltra",
         {
           "groupIdentifier": "group.com.harryyking.grateful",

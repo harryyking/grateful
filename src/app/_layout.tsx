@@ -22,13 +22,6 @@ import {
 } from "@expo-google-fonts/dm-sans";
 
 import {
-  useFonts as usePlayfair,
-  PlayfairDisplay_400Regular,
-  PlayfairDisplay_500Medium,
-  PlayfairDisplay_600SemiBold,
-} from "@expo-google-fonts/playfair-display";
-import {  } from 'voltra';
-import {
   useFonts as useDomine,
   Domine_400Regular,
   Domine_500Medium,
@@ -66,12 +59,6 @@ export default function RootLayout() {
     DMSans_700Bold,
   });
 
-  const [playfairLoaded, playfairError] = usePlayfair({
-    PlayfairDisplay_400Regular,
-    PlayfairDisplay_500Medium,
-    PlayfairDisplay_600SemiBold,
-  });
-
   const [domineLoaded, domineError] = useDomine({
     Domine_400Regular,
     Domine_500Medium,
@@ -79,8 +66,8 @@ export default function RootLayout() {
     Domine_700Bold,
   });
 
-  const fontsLoaded = dmSansLoaded && playfairLoaded && domineLoaded;
-  const fontError = dmSansError || playfairError || domineError;
+  const fontsLoaded = dmSansLoaded &&  domineLoaded;
+  const fontError = dmSansError || domineError;
 
   // Now isReady is safe
   const isReady = fontsLoaded && hasHydrated;

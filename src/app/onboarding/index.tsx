@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     marginBottom: 16,
     letterSpacing: -0.5,
-    fontFamily: "Georgia",
+    fontFamily: "Domine_600SemiBold",
   },
   subheadline: {
     fontSize: 16,
