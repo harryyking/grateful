@@ -2,102 +2,151 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { useProfileStore } from '@/store/ProfileStore';
-import { getTodaysDailyPromises } from '@/store/DailyPromisesStore';
+import { simpleHash } from '@/store/DailyPromisesStore';
+import promises from '@/data/promise';
+import type { PrimaryDesire, Focus } from '@/types/promiseTypes';
 
-
-// Optional: Android notification channel
 async function setupNotificationChannel() {
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('daily-promise', {
       name: 'Daily Promise Reminders',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#FF6B6B',
+      lightColor: '#F4B740',
     });
   }
 }
 
-// 1. Request permission (only asks if needed)
 export async function requestNotificationPermission(): Promise<boolean> {
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
-
   let finalStatus = existingStatus;
+
   if (existingStatus !== 'granted') {
     const { status } = await Notifications.requestPermissionsAsync();
     finalStatus = status;
   }
 
-  if (finalStatus !== 'granted') {
-    console.log('Notification permission not granted');
-    return false;
-  }
-
+  if (finalStatus !== 'granted') return false;
   await setupNotificationChannel();
   return true;
 }
 
-// 2. Main scheduler — now 100% hook-free and Zustand-friendly
+// Scores a promise against user profile — same logic as DailyPromisesStore
+const scorePromise = (
+  promise: (typeof promises)[number],
+  desire: PrimaryDesire | null,
+  focus: Focus[]
+): number => {
+  let score = 0;
+  if (desire && promise.desire === desire) score += 3;
+  if (focus.length > 0 && focus.includes(promise.focus as Focus)) score += 2;
+  return score;
+};
+
+// Gets the right promise for ANY date — not just today
+const getPromiseForDate = (
+  date: Date,
+  name: string,
+  desire: PrimaryDesire | null,
+  focus: Focus[]
+): { finalText: string; reference: string } => {
+  const seed = date.toDateString() + 'local-user';
+
+  const scored = promises.map((p) => ({
+    promise: p,
+    score: scorePromise(p, desire, focus),
+  }));
+
+  const sorted = [...scored].sort((a, b) => {
+    const hashA = simpleHash(seed + a.promise.id) / (a.score + 1);
+    const hashB = simpleHash(seed + b.promise.id) / (b.score + 1);
+    return hashA - hashB;
+  });
+
+  const promise = sorted[0].promise;
+
+  return {
+    finalText: promise.personalizedTemplate.replace('{name}', name || 'Beloved'),
+    reference: promise.reference,
+  };
+};
+
+const TIME_SLOTS = {
+  morning:   { hour: 8,  minute: 0,  greeting: (name: string) => `Good morning, ${name} ✨` },
+  afternoon: { hour: 14, minute: 0,  greeting: (name: string) => `Midday word for you, ${name}` },
+  night:     { hour: 20, minute: 0,  greeting: (name: string) => `Before you rest, ${name} 🌙` },
+};
+
 export async function schedulePersonalizedDailyPromiseNotification() {
   try {
-    // 1. Permission
     const { status } = await Notifications.getPermissionsAsync();
     if (status !== 'granted') {
       const granted = await requestNotificationPermission();
       if (!granted) return;
     }
 
-    // 2. Get profile (non-hook way)
     const profile = useProfileStore.getState();
-    if (!profile.hasCompletedOnboarding) {
-      console.log('⏭️ Onboarding not completed → skipping notifications');
-      return;
-    }
+    if (!profile.hasCompletedOnboarding) return;
 
-    // 3. Get today's promises using the plain function (no hook!)
-    const { userName, promises } = getTodaysDailyPromises();
+    const { name, primaryDesire, focus, encouragementTime } = profile;
 
-    if (!promises?.length) throw new Error('No promises generated');
+    // Cancel ALL existing Grateful notifications cleanly
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    const gratefulNotifs = scheduled.filter((n) =>
+      n.identifier.startsWith('grateful-')
+    );
+    await Promise.all(
+      gratefulNotifs.map((n) =>
+        Notifications.cancelScheduledNotificationAsync(n.identifier)
+      )
+    );
 
-    const todayPromise = promises[0];
+    // Schedule 7 days ahead — user can go a full week without opening the app
+    const slot = TIME_SLOTS[encouragementTime] ?? TIME_SLOTS.morning;
+    const scheduled7Days: string[] = [];
 
-    // 4. Cancel old notifications
-    await Notifications.cancelScheduledNotificationAsync('daily-promise-morning');
-    await Notifications.cancelScheduledNotificationAsync('daily-promise-afternoon');
-    await Notifications.cancelScheduledNotificationAsync('daily-promise-evening');
+    for (let daysAhead = 0; daysAhead < 7; daysAhead++) {
+      const targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() + daysAhead);
+      targetDate.setHours(slot.hour, slot.minute, 0, 0);
 
-    const notificationTimes = [
-      { id: 'daily-promise-morning', hour: 8, minute: 0, title: `Good morning, ${userName} ✨` },
-      { id: 'daily-promise-afternoon', hour: 14, minute: 0, title: `Good afternoon, ${userName} ✨` },
-      { id: 'daily-promise-evening', hour: 18, minute: 0, title: `Good evening, ${userName} ✨` },
-    ];
+      // Skip if the time has already passed today
+      if (targetDate <= new Date()) continue;
 
-    // 5. Schedule the three daily notifications
-    for (const time of notificationTimes) {
+      const { finalText, reference } = getPromiseForDate(
+        targetDate,
+        name,
+        primaryDesire,
+        focus
+      );
+
+      const identifier = `grateful-${targetDate.toDateString().replace(/\s/g, '-')}`;
+
       await Notifications.scheduleNotificationAsync({
-        identifier: time.id,
+        identifier,
         content: {
-          title: time.title,
-          body: todayPromise.finalText,
+          title: slot.greeting(name),
+          body: finalText,
+          subtitle: reference,          // shows under body on iOS
           sound: true,
           priority: Notifications.AndroidNotificationPriority.HIGH,
           data: {
-            screen: 'promise',
-            promiseId: todayPromise.id,
-            timeOfDay: time.id.split('-')[2],
+            screen: 'home',
+            date: targetDate.toDateString(),
           },
         },
         trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DAILY,
-          hour: time.hour,
-          minute: time.minute,
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: targetDate,
         },
       });
 
-      console.log(`✅ Scheduled ${time.id} for ${time.hour}:${time.minute.toString().padStart(2, '0')}`);
+      scheduled7Days.push(`${targetDate.toDateString()} @ ${slot.hour}:${String(slot.minute).padStart(2, '0')}`);
     }
 
-    console.log('🎉 All three daily personalized notifications scheduled!');
+    console.log(`✅ Scheduled ${scheduled7Days.length} notifications:`, scheduled7Days);
+
   } catch (error) {
-    console.error('Failed to schedule personalized notifications:', error);
+    console.error('Failed to schedule notifications:', error);
   }
 }
