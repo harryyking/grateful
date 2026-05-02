@@ -35,7 +35,7 @@
           "widgetBundleIdentifier": "com.harryyking.grateful.widgets",
           "widgets": [
             {
-              "id": "daily-promise",
+              "id": "daily_promise",
               "displayName": "Daily Promise",
               "description": "A personalised scripture promise every day",
               "supportedFamilies": ["systemSmall", "systemMedium"]
