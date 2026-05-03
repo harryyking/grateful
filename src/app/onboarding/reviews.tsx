@@ -6,6 +6,7 @@ import {
   Animated,
   useWindowDimensions,
   Platform,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -65,6 +66,7 @@ export default function ReviewsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <StatusBar barStyle="light-content" />
       <View style={[styles.contentWrapper, { paddingVertical: verticalPadding }]}>
 
         {/* Header */}

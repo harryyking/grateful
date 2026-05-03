@@ -7,6 +7,7 @@ import {
   Dimensions,
   Animated,
   Platform,
+  StatusBar,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -95,6 +96,7 @@ export default function FeatureScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" />
       {/* Decorative Glow */}
       <View style={styles.ambientGlowTop} />
 

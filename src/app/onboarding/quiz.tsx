@@ -217,7 +217,7 @@ const completeOnboarding = useProfileStore((state) => state.completeOnboarding);
 
   return (
     <View style={styles.container}>
-      
+      <StatusBar barStyle="light-content" />
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}

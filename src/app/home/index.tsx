@@ -266,6 +266,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: atmosphere.color }]}>
+      <StatusBar barStyle="light-content" />
       {/* Full Screen Background */}
       {atmosphere.image && (
         <ImageBackground
