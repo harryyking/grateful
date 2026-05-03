@@ -2,7 +2,7 @@
 import React from 'react';
 import { Voltra } from 'voltra';
 import promises from '@/data/promise';
-import { simpleHash } from '@/store/DailyPromisesStore';
+import { getTodaysDailyPromises, simpleHash } from '@/store/DailyPromisesStore';
 import { scheduleWidget, updateWidget, VoltraWidgetPreview } from 'voltra/client';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { GRATEFUL_THEME } from '@/design/theme';
@@ -14,16 +14,19 @@ const theme = GRATEFUL_THEME.light.colors;
 
 // ── Plain function — safe to call outside React ────────────────────────────
 const getTodaysPromise = () => {
-  const profile = useProfileStore.getState(); // .getState() not hook
+  const { promises, userName } = getTodaysDailyPromises();
+  const promise = promises[0];
 
-  const today = new Date().toDateString();
-  const seed = today + 'local-user';
-  const shuffled = [...promises].sort((a, b) =>
-    simpleHash(seed + a.id) - simpleHash(seed + b.id)
-  );
-  const promise = shuffled[0];
+  // Fallback if onboarding not complete yet
+  if (!promise) {
+    return {
+      finalText: 'Beloved, God knows the plans He has for you — plans to prosper you and not to harm you.',
+      reference: 'Jeremiah 29:11',
+    };
+  }
+
   return {
-    finalText: promise.personalizedTemplate.replace('{name}', profile.name || 'Beloved'),
+    finalText: promise.finalText,
     reference: promise.reference,
   };
 };
