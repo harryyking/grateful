@@ -13,6 +13,7 @@
       "requireFullScreen": true,
       "userInterfaceStyle": "automatic",
       "infoPlist": {
+        "UIBackgroundModes": ["fetch"],
         "CFBundleDisplayName": "Grateful",
         "ITSAppUsesNonExemptEncryption": false
       },
