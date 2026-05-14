@@ -11,6 +11,8 @@ import { queryClient } from "@/lib/QueryClient";
 import { GRATEFUL_THEME } from "@/design/theme";
 
 import * as SplashScreen from "expo-splash-screen";
+import * as BackgroundFetch from "expo-background-fetch";
+import * as TaskManager from "expo-task-manager";
 
 import {
   useFonts as useDMSans,
@@ -30,25 +32,68 @@ import {
 } from "@expo-google-fonts/domine";
 
 import { useCallback, useEffect } from "react";
-import { StatusBar } from "react-native";
+import { AppState, AppStateStatus, StatusBar } from "react-native";
 import { ThemeProvider } from "@/services/context/ThemeContext";
 
-import { useShallow } from 'zustand/shallow';
+import { useShallow } from "zustand/shallow";
 import { useProfileStore } from "@/store/ProfileStore";
-import Purchases, {LOG_LEVEL} from 'react-native-purchases'
+import Purchases, { LOG_LEVEL } from "react-native-purchases";
 
+import { scheduleAllUpcomingWidgets } from "@/widgets/DailyPromiseWidget";
 
 SplashScreen.preventAutoHideAsync();
 
+// ── Background task ────────────────────────────────────────────────────────
+// Defined at module scope (outside any component) as required by expo-task-manager.
+// iOS will wake the app periodically and run this even when the user hasn't
+// opened the app — ensuring the widget schedule never runs dry.
+const WIDGET_REFRESH_TASK = "widget-daily-refresh";
+
+TaskManager.defineTask(WIDGET_REFRESH_TASK, async () => {
+  try {
+    await scheduleAllUpcomingWidgets(30);
+    return BackgroundFetch.BackgroundFetchResult.NewData;
+  } catch (err) {
+    console.error("[WidgetRefresh] Background task failed:", err);
+    return BackgroundFetch.BackgroundFetchResult.Failed;
+  }
+});
+
+async function registerWidgetRefreshTask() {
+  try {
+    const status = await BackgroundFetch.getStatusAsync();
+
+    // If background fetch is restricted (e.g. Low Power Mode), bail out gracefully
+    if (
+      status === BackgroundFetch.BackgroundFetchStatus.Restricted ||
+      status === BackgroundFetch.BackgroundFetchStatus.Denied
+    ) {
+      console.warn("[WidgetRefresh] Background fetch is restricted or denied.");
+      return;
+    }
+
+    const isRegistered = await TaskManager.isTaskRegisteredAsync(WIDGET_REFRESH_TASK);
+    if (!isRegistered) {
+      await BackgroundFetch.registerTaskAsync(WIDGET_REFRESH_TASK, {
+        minimumInterval: 60 * 60 * 12, // At most every 12 hours (iOS may run it less often)
+        stopOnTerminate: false,         // Keep running after app is closed
+        startOnBoot: true,              // Run after device restart
+      });
+      console.log("[WidgetRefresh] Background task registered.");
+    }
+  } catch (err) {
+    console.error("[WidgetRefresh] Failed to register background task:", err);
+  }
+}
+
+// ── Root Layout ────────────────────────────────────────────────────────────
 export default function RootLayout() {
-  // ← Zustand selectors first (stable with useShallow)
   const { hasHydrated, hasCompletedOnboarding } = useProfileStore(
     useShallow((state) => ({
       hasHydrated: state.hasHydrated,
       hasCompletedOnboarding: state.hasCompletedOnboarding,
     }))
   );
-
 
   // Fonts
   const [dmSansLoaded, dmSansError] = useDMSans({
@@ -66,10 +111,8 @@ export default function RootLayout() {
     Domine_700Bold,
   });
 
-  const fontsLoaded = dmSansLoaded &&  domineLoaded;
+  const fontsLoaded = dmSansLoaded && domineLoaded;
   const fontError = dmSansError || domineError;
-
-  // Now isReady is safe
   const isReady = fontsLoaded && hasHydrated;
 
   const router = useRouter();
@@ -88,13 +131,40 @@ export default function RootLayout() {
     }
   }, [isReady, hasCompletedOnboarding, segments, router]);
 
-  const onLayoutRootView = useCallback(async () => {
-    if (isReady) {
-      await SplashScreen.hideAsync();
-    }
+  // ── Widget scheduling ──────────────────────────────────────────────────
+  // Strategy (3 layers so the widget is always fresh):
+  //   1. Schedule immediately when the app is ready (covers first launch & updates)
+  //   2. Re-schedule every time the app comes to the foreground (AppState)
+  //   3. Background task fires every ~12 h for users who rarely open the app
+  useEffect(() => {
+    if (!isReady) return;
+
+    // Layer 1: schedule on mount
+    scheduleAllUpcomingWidgets(30).catch((err: any) =>
+      console.error("[WidgetRefresh] Initial schedule failed:", err)
+    );
+
+    // Layer 2: re-schedule on foreground
+    const subscription = AppState.addEventListener(
+      "change",
+      (nextState: AppStateStatus) => {
+        if (nextState === "active") {
+          scheduleAllUpcomingWidgets(30).catch((err: any) =>
+            console.error("[WidgetRefresh] Foreground schedule failed:", err)
+          );
+        }
+      }
+    );
+
+    // Layer 3: register the background task
+    registerWidgetRefreshTask();
+
+    return () => {
+      subscription.remove();
+    };
   }, [isReady]);
 
-  // ← RevenueCat configure stays exactly where it is
+  // RevenueCat
   useEffect(() => {
     Purchases.setLogLevel(__DEV__ ? LOG_LEVEL.VERBOSE : LOG_LEVEL.WARN);
     const apiKey = __DEV__
@@ -110,10 +180,13 @@ export default function RootLayout() {
     console.log("RevenueCat configured with key:", apiKey.slice(0, 8) + "...");
   }, []);
 
-  // CRITICAL: Only return null while still loading
-  if (!isReady) {
-    return null;
-  }
+  const onLayoutRootView = useCallback(async () => {
+    if (isReady) {
+      await SplashScreen.hideAsync();
+    }
+  }, [isReady]);
+
+  if (!isReady) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
@@ -125,7 +198,9 @@ export default function RootLayout() {
             <Stack
               screenOptions={{
                 headerShown: false,
-                contentStyle: { backgroundColor: GRATEFUL_THEME.light.colors.background },
+                contentStyle: {
+                  backgroundColor: GRATEFUL_THEME.light.colors.background,
+                },
               }}
             >
               {/* Onboarding flow */}
@@ -137,19 +212,25 @@ export default function RootLayout() {
               {/* Protected routes */}
               <Stack.Screen name="home" />
               <Stack.Screen name="profile/index" />
-              <Stack.Screen name="themes/index" options={{ presentation: "formSheet",
-                  sheetAllowedDetents: [ 0.9],   
-                  sheetInitialDetentIndex: 0,           
-                  sheetGrabberVisible: true, 
-                  sheetCornerRadius: 20,    
-               }} />
-              <Stack.Screen name="widget/index" options={{ presentation: "formSheet", 
-                 sheetAllowedDetents: [0.9],   
-                 sheetInitialDetentIndex: 0,           
-                 sheetGrabberVisible: true, 
-                 sheetCornerRadius: 20, 
-              }}
-              
+              <Stack.Screen
+                name="themes/index"
+                options={{
+                  presentation: "formSheet",
+                  sheetAllowedDetents: [0.9],
+                  sheetInitialDetentIndex: 0,
+                  sheetGrabberVisible: true,
+                  sheetCornerRadius: 20,
+                }}
+              />
+              <Stack.Screen
+                name="widget/index"
+                options={{
+                  presentation: "formSheet",
+                  sheetAllowedDetents: [0.9],
+                  sheetInitialDetentIndex: 0,
+                  sheetGrabberVisible: true,
+                  sheetCornerRadius: 20,
+                }}
               />
 
               {/* Catch-all */}

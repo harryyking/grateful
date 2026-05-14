@@ -27,14 +27,20 @@ const scorePromise = (
 };
 
 // ── Shared builder ─────────────────────────────────────────────────────────
+// `forDate` defaults to today but can be any future date, which shifts the
+// seed and therefore produces a deterministically different (but stable) set
+// of promises for that day — exactly what we need for pre-scheduled widgets.
 const buildDailyPromises = (
   name: string,
   desire: PrimaryDesire | null,
   focus: Focus[],
-  count = 4
+  count = 4,
+  forDate: Date = new Date()   // ← the only addition
 ) => {
-  const today = new Date().toDateString();
-  const seed = today + 'local-user';
+  // Seed is date-specific: same day always yields the same order,
+  // different days yield different orders — all without a database.
+  const dateKey = forDate.toDateString();
+  const seed = dateKey + 'local-user';
 
   // 1. Score every promise against the user's profile
   const scored = promises.map((p) => ({
@@ -85,11 +91,12 @@ const buildDailyPromises = (
 export const useDailyPromises = () => {
   const { name, primaryDesire, focus, hasCompletedOnboarding } = useProfileStore();
 
-  const today = new Date().toDateString();
-  const dailyPromises = buildDailyPromises(name, primaryDesire, focus, 4);
+  // Hook always resolves to today — no date param needed here
+  const today = new Date();
+  const dailyPromises = buildDailyPromises(name, primaryDesire, focus, 4, today);
 
   return {
-    date: today,
+    date: today.toDateString(),
     userName: name || 'Beloved',
     promises: dailyPromises,
     count: dailyPromises.length,
@@ -98,7 +105,9 @@ export const useDailyPromises = () => {
 };
 
 // ── Plain function (use outside components e.g. widgets, background tasks) ─
-export const getTodaysDailyPromises = () => {
+// `forDate` is optional — omit it for today, pass a future Date for
+// pre-rendering widget snapshots via scheduleAllUpcomingWidgets().
+export const getTodaysDailyPromises = (forDate: Date = new Date()) => {
   const { name, primaryDesire, focus, hasCompletedOnboarding } =
     useProfileStore.getState();
 
@@ -106,10 +115,10 @@ export const getTodaysDailyPromises = () => {
     return { userName: 'Beloved', promises: [], isReady: false };
   }
 
-  const dailyPromises = buildDailyPromises(name, primaryDesire, focus, 4);
+  const dailyPromises = buildDailyPromises(name, primaryDesire, focus, 4, forDate);
 
   return {
-    date: new Date().toDateString(),
+    date: forDate.toDateString(),
     userName: name || 'Beloved',
     promises: dailyPromises,
     count: dailyPromises.length,
