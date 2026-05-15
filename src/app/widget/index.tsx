@@ -14,7 +14,7 @@ import { MaterialIcons, Feather } from '@expo/vector-icons';
 import { Text } from '@/components/ui/Text';
 import { router } from 'expo-router';
 import { GRATEFUL_THEME } from '@/design/theme';
-import { DailyPromiseWidget, MediumWidget, SmallWidget } from '@/widgets/DailyPromiseWidget';
+import { DailyPromise, DailyPromiseWidget, MediumWidget, SmallWidget } from '@/widgets/DailyPromiseWidget';
 import { VoltraWidgetPreview } from 'voltra/client';
 
 const theme = GRATEFUL_THEME.light.colors;
@@ -40,6 +40,14 @@ const STEPS = [
 ];
 
 export default function WidgetScreen() {
+
+  const FALLBACK_PROMISE: DailyPromise = {
+  finalText:
+    'Beloved, God knows the plans He has for you — plans to prosper you and not to harm you.',
+  reference: 'Jeremiah 29:11',
+};
+
+  
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <StatusBar barStyle="light-content" />
@@ -69,7 +77,10 @@ export default function WidgetScreen() {
             {/* Small */}
             <View style={styles.previewItem}>
               <VoltraWidgetPreview family="systemSmall" style={styles.widgetShadow}>
-                <SmallWidget />
+                <SmallWidget promise={{
+                  finalText: FALLBACK_PROMISE.finalText,
+                  reference: FALLBACK_PROMISE.reference
+                }} />
               </VoltraWidgetPreview>
               <Text style={styles.previewCaption}>Small</Text>
             </View>
@@ -77,7 +88,10 @@ export default function WidgetScreen() {
             {/* Medium stacked to the right */}
             <View style={styles.previewItem}>
               <VoltraWidgetPreview family="systemMedium" style={styles.widgetShadow}>
-                <MediumWidget />
+                <MediumWidget promise={{
+                  finalText: FALLBACK_PROMISE.finalText,
+                  reference: FALLBACK_PROMISE.reference
+                }} />
               </VoltraWidgetPreview>
               <Text style={styles.previewCaption}>Medium</Text>
             </View>
