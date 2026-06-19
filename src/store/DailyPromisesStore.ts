@@ -2,6 +2,12 @@
 import { useProfileStore } from './ProfileStore';
 import promises from '@/data/promise';
 import type { Promise, PrimaryDesire, Focus } from '@/types/promiseTypes';
+import {
+  getEligiblePromises,
+  getSeenCycleCount,
+  markPromisesAsSeen,
+  pruneOldSeenRecords,
+} from './SeenPromisesStore';
 
 // ── Deterministic shuffle ──────────────────────────────────────────────────
 export const simpleHash = (str: string): number => {
@@ -27,50 +33,45 @@ const scorePromise = (
 };
 
 // ── Shared builder ─────────────────────────────────────────────────────────
-// `forDate` defaults to today but can be any future date, which shifts the
-// seed and therefore produces a deterministically different (but stable) set
-// of promises for that day — exactly what we need for pre-scheduled widgets.
+// Receives `eligiblePromises` (pre-filtered by SeenPromisesStore) so the
+// builder itself stays pure. The cycle count salts the seed so the shuffle
+// order changes even if date + profile are identical after a pool reset.
 const buildDailyPromises = (
+  eligiblePromises: (typeof promises)[number][],
   name: string,
   desire: PrimaryDesire | null,
   focus: Focus[],
+  cycleCount: number,
   count = 4,
-  forDate: Date = new Date()   // ← the only addition
+  forDate: Date = new Date()
 ) => {
-  // Seed is date-specific: same day always yields the same order,
-  // different days yield different orders — all without a database.
   const dateKey = forDate.toDateString();
-  const seed = dateKey + 'local-user';
 
-  // 1. Score every promise against the user's profile
-  const scored = promises.map((p) => ({
+  // Cycle count changes every day (total records written) — breaks seed
+  // repetition on pool resets; week number adds extra entropy across weeks.
+  const weekOfYear = Math.floor(
+    (forDate.getTime() - new Date(forDate.getFullYear(), 0, 0).getTime()) /
+      (7 * 24 * 60 * 60 * 1000)
+  );
+
+  const seed = `${dateKey}-w${weekOfYear}-c${cycleCount}-${name}-${desire}-${focus.join(',')}`;
+
+  // Score only from the eligible pool
+  const scored = eligiblePromises.map((p) => ({
     promise: p,
     score: scorePromise(p, desire, focus),
   }));
 
-  // 2. Separate into personalised pool (score > 0) and fallback pool
-  const personalised = scored.filter((s) => s.score > 0);
+  const relevant = scored.filter((s) => s.score > 0);
   const fallback = scored.filter((s) => s.score === 0);
 
-  // 3. Deterministic shuffle within each pool separately
-  interface ScoredPromise {
-    promise: (typeof promises)[number];
-    score: number;
-  }
+  const deterministicShuffle = <T,>(arr: T[], keyFn: (item: T) => string) =>
+    [...arr].sort((a, b) => simpleHash(seed + keyFn(a)) - simpleHash(seed + keyFn(b)));
 
-  const shuffle = (arr: ScoredPromise[]) =>
-    [...arr].sort((a, b) => {
-      const hashA = simpleHash(seed + a.promise.id);
-      const hashB = simpleHash(seed + b.promise.id);
-      // Weight by score so higher-relevance promises rise to the top
-      return hashA / (a.score + 1) - hashB / (b.score + 1);
-    });
-
-  const shuffledPersonalised = shuffle(personalised);
-  const shuffledFallback = shuffle(fallback);
-
-  // 4. Fill up to `count` — personalised first, fallback to pad
-  const picked = [...shuffledPersonalised, ...shuffledFallback]
+  const picked = [
+    ...deterministicShuffle(relevant, (x) => x.promise.id),
+    ...deterministicShuffle(fallback, (x) => x.promise.id),
+  ]
     .slice(0, count)
     .map(({ promise: p }) => ({
       id: p.id,
@@ -80,7 +81,6 @@ const buildDailyPromises = (
       focus: p.focus as Focus,
       desire: p.desire as PrimaryDesire,
       season: p.season,
-      // Computed display fields
       finalText: p.personalizedTemplate.replace('{name}', name || 'Beloved'),
     }));
 
@@ -91,9 +91,10 @@ const buildDailyPromises = (
 export const useDailyPromises = () => {
   const { name, primaryDesire, focus, hasCompletedOnboarding } = useProfileStore();
 
-  // Hook always resolves to today — no date param needed here
   const today = new Date();
-  const dailyPromises = buildDailyPromises(name, primaryDesire, focus, 4, today);
+  const eligible = getEligiblePromises(promises);
+  const cycleCount = getSeenCycleCount();
+  const dailyPromises = buildDailyPromises(eligible, name, primaryDesire, focus, cycleCount, 4, today);
 
   return {
     date: today.toDateString(),
@@ -105,8 +106,6 @@ export const useDailyPromises = () => {
 };
 
 // ── Plain function (use outside components e.g. widgets, background tasks) ─
-// `forDate` is optional — omit it for today, pass a future Date for
-// pre-rendering widget snapshots via scheduleAllUpcomingWidgets().
 export const getTodaysDailyPromises = (forDate: Date = new Date()) => {
   const { name, primaryDesire, focus, hasCompletedOnboarding } =
     useProfileStore.getState();
@@ -115,7 +114,9 @@ export const getTodaysDailyPromises = (forDate: Date = new Date()) => {
     return { userName: 'Beloved', promises: [], isReady: false };
   }
 
-  const dailyPromises = buildDailyPromises(name, primaryDesire, focus, 4, forDate);
+  const eligible = getEligiblePromises(promises);
+  const cycleCount = getSeenCycleCount();
+  const dailyPromises = buildDailyPromises(eligible, name, primaryDesire, focus, cycleCount, 4, forDate);
 
   return {
     date: forDate.toDateString(),
@@ -124,4 +125,17 @@ export const getTodaysDailyPromises = (forDate: Date = new Date()) => {
     count: dailyPromises.length,
     isReady: true,
   };
+};
+
+// ── Commit today's promises as seen ───────────────────────────────────────
+// Call ONCE after the daily set is shown to the user — NOT during build,
+// so widget pre-renders never accidentally poison the exclusion window.
+export const commitDailyPromises = (promiseIds: string[]): void => {
+  markPromisesAsSeen(promiseIds);
+};
+
+// ── App launch maintenance ─────────────────────────────────────────────────
+// Drop from your root layout / app entry point (e.g. app/_layout.tsx useEffect).
+export const initDailyPromises = (): void => {
+  pruneOldSeenRecords();
 };

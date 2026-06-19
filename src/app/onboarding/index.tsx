@@ -87,7 +87,7 @@ export default function WelcomeScreen() {
                 A word from God,{"\n"}written for you.
               </Text>
               <Text style={styles.subheadline}>
-                Each morning, a scripture promise shaped around your life —
+                Each morning, a scripture promise shaped around your life
                 not generic, but personal. Let Him meet you right where you are.
               </Text>
             </MotiView>

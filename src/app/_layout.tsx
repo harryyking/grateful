@@ -11,7 +11,8 @@ import { queryClient } from "@/lib/QueryClient";
 import { GRATEFUL_THEME } from "@/design/theme";
 
 import * as SplashScreen from "expo-splash-screen";
-import * as BackgroundFetch from "expo-background-fetch";
+import {BackgroundFetchResult, BackgroundFetchStatus, } from "expo-background-fetch"
+import {BackgroundTaskStatus, getStatusAsync, registerTaskAsync} from "expo-background-task"
 import * as TaskManager from "expo-task-manager";
 
 import {
@@ -40,6 +41,8 @@ import { useProfileStore } from "@/store/ProfileStore";
 import Purchases, { LOG_LEVEL } from "react-native-purchases";
 
 import { scheduleAllUpcomingWidgets } from "@/widgets/DailyPromiseWidget";
+import { commitDailyPromises, getTodaysDailyPromises } from "@/store/DailyPromisesStore";
+import { storage } from "@/store/SeenPromisesStore";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -52,21 +55,20 @@ const WIDGET_REFRESH_TASK = "widget-daily-refresh";
 TaskManager.defineTask(WIDGET_REFRESH_TASK, async () => {
   try {
     await scheduleAllUpcomingWidgets(30);
-    return BackgroundFetch.BackgroundFetchResult.NewData;
+    return BackgroundFetchResult.NewData;
   } catch (err) {
     console.error("[WidgetRefresh] Background task failed:", err);
-    return BackgroundFetch.BackgroundFetchResult.Failed;
+    return BackgroundFetchResult.Failed;
   }
 });
 
 async function registerWidgetRefreshTask() {
   try {
-    const status = await BackgroundFetch.getStatusAsync();
+    const status = await getStatusAsync();
 
     // If background fetch is restricted (e.g. Low Power Mode), bail out gracefully
     if (
-      status === BackgroundFetch.BackgroundFetchStatus.Restricted ||
-      status === BackgroundFetch.BackgroundFetchStatus.Denied
+      status === BackgroundTaskStatus.Restricted
     ) {
       console.warn("[WidgetRefresh] Background fetch is restricted or denied.");
       return;
@@ -74,10 +76,8 @@ async function registerWidgetRefreshTask() {
 
     const isRegistered = await TaskManager.isTaskRegisteredAsync(WIDGET_REFRESH_TASK);
     if (!isRegistered) {
-      await BackgroundFetch.registerTaskAsync(WIDGET_REFRESH_TASK, {
-        minimumInterval: 60 * 60 * 12, // At most every 12 hours (iOS may run it less often)
-        stopOnTerminate: false,         // Keep running after app is closed
-        startOnBoot: true,              // Run after device restart
+      await registerTaskAsync(WIDGET_REFRESH_TASK, {
+        minimumInterval: 60 * 60 * 12, 
       });
       console.log("[WidgetRefresh] Background task registered.");
     }
@@ -130,6 +130,17 @@ export default function RootLayout() {
       router.replace("/onboarding");
     }
   }, [isReady, hasCompletedOnboarding, segments, router]);
+
+  useEffect(() => {
+  const todayKey = new Date().toDateString();
+  const lastCommitted = storage.getString('last_committed_date');
+
+  if (lastCommitted !== todayKey) {
+    const { promises } = getTodaysDailyPromises();
+    commitDailyPromises(promises.map(p => p.id));
+    storage.set('last_committed_date', todayKey);
+  }
+}, []);
 
   // ── Widget scheduling ──────────────────────────────────────────────────
   // Strategy (3 layers so the widget is always fresh):
@@ -215,7 +226,7 @@ export default function RootLayout() {
               <Stack.Screen
                 name="themes/index"
                 options={{
-                  presentation: "formSheet",
+                  presentation: "pageSheet",
                   sheetAllowedDetents: [0.9],
                   sheetInitialDetentIndex: 0,
                   sheetGrabberVisible: true,
@@ -225,7 +236,7 @@ export default function RootLayout() {
               <Stack.Screen
                 name="widget/index"
                 options={{
-                  presentation: "formSheet",
+                  presentation: "pageSheet",
                   sheetAllowedDetents: [0.9],
                   sheetInitialDetentIndex: 0,
                   sheetGrabberVisible: true,

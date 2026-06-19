@@ -13,7 +13,9 @@
       "requireFullScreen": true,
       "userInterfaceStyle": "automatic",
       "infoPlist": {
-        "UIBackgroundModes": ["fetch"],
+        "UIBackgroundModes": [
+          "fetch"
+        ],
         "CFBundleDisplayName": "Grateful",
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -29,7 +31,7 @@
     },
     "plugins": [
       [
-        "expo-font", 
+        "expo-font",
         {
           "fonts": [
             "./assets/fonts/DM-Sans.ttf",
@@ -49,7 +51,10 @@
               "id": "daily_promise",
               "displayName": "Daily Promise",
               "description": "A personalised scripture promise every day",
-              "supportedFamilies": ["systemSmall", "systemMedium"]
+              "supportedFamilies": [
+                "systemSmall",
+                "systemMedium"
+              ]
             }
           ]
         }
@@ -74,10 +79,11 @@
         "expo-build-properties",
         {
           "ios": {
-            "deploymentTarget": "16.2"     
+            "deploymentTarget": "16.2"
           }
         }
-      ]
+      ],
+      "expo-background-task"
     ],
     "experiments": {
       "typedRoutes": true,

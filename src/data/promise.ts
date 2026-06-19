@@ -10,7 +10,7 @@ const promises: Promise[] = [
   {
     id: "1",
     text: "For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, plans to give you hope and a future.",
-    personalizedTemplate: "{name}, God knows the plans He has for you — plans to prosper you and not to harm you, plans to give you hope and a future.",
+    personalizedTemplate: "{name}, God knows the plans He has for you plans to prosper you and not to harm you, plans to give you hope and a future.",
     reference: "Jeremiah 29:11",
     desire: "grounding",
     focus: "purpose",
@@ -1097,12 +1097,6 @@ const promises: Promise[] = [
     focus: "purpose",
     season: "growth",
   },
-
-  // ════════════════════════════════════════════════════════════════════════════
-  // NEW VERSES — filling gaps across focus areas
-  // ════════════════════════════════════════════════════════════════════════════
-
-  // -- Relationships (more depth) -------------------------------------------
   {
     id: "121",
     text: "A friend loves at all times, and a brother is born for a time of adversity.",
