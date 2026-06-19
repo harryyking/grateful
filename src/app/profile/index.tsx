@@ -269,7 +269,7 @@ export default function ProfileScreen() {
           />
         </View>
 
-        <Text style={styles.versionText}>Grateful v1.0.0</Text>
+        <Text style={styles.versionText}>Grateful v1.0.1</Text>
       </ScrollView>
     </SafeAreaView>
   );
